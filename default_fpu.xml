@@ -35,7 +35,7 @@
             default value is machine_bits, if not set --> 
         <stat name="total_cycles" value="1"/>
         <stat name="idle_cycles" value="0"/>
-        <stat name="busy_cycles"  value="1"/>
+        <stat name="busy_cycles"  value="0"/>
             <!--This page size(B) is complete different from the page size in Main memo section. this page size is the size of 
             virtual memory from OS/Archi perspective; the page size in Main memo section is the actual physical line in a DRAM bank  -->
         <!-- *********************** cores ******************* -->
