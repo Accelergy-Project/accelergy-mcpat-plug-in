@@ -129,115 +129,23 @@ class McPatWrapper:
                         mcpat_exec_path = root + os.sep + file_name
                         return mcpat_exec_path
 
-    # ----------------- FPU related ---------------------------
-    def fpu_unit_populate_data(self, interface):
-        action_name = interface['action_name']
-        attributes = interface['attributes']
-        tech_node = str(attributes['technology'])
-        if 'nm' in tech_node:
-            tech_node = tech_node[:-2]  # remove the unit
-        clockrate_mhz = str(attributes['clockrate'])
-        if 'mhz' in clockrate_mhz:
-            clockrate_mhz = clockrate_mhz[:-3]
-        print('Info: McPat plug-in... Querying McPat for request:\n', interface)
-        curr_dir = os.path.abspath(os.getcwd())
-        mcpat_exec_path = self.search_for_mcpat_exec_path()
-
-        xml_file_name = self.output_prefix + 'fpu.xml' if self.output_prefix is not '' else 'fpu.xml'
-        results_file_path = self.mcpat_wrapper_for_fpu(mcpat_exec_path, tech_node, clockrate_mhz, xml_file_name)
-
-        # get energy of fp instruction as this is the only energy estimate of fpu we support
-        # for mcpat right now, thus regardless of the input action name this is the energy
-        # we fetch right now
-        with open(results_file_path) as results_file:
-            result_text = results_file.read()
-            # result = re.match("(Floating Point Units)(.*\n){6}", result_text)
-            fpu_output_match_obj = re.search("(Floating Point Units)(.*\n){5}(.*)", result_text)
-            fpu_output_string = fpu_output_match_obj.group(0)
-            fpu_output_string = re.sub(" ", "", fpu_output_string)
-            fpu_output_split_lines = fpu_output_string.split("\n")
-
-            results_dict = {}
-            for line in fpu_output_split_lines:
-                if "=" in line:
-                    split_line = line.split("=")
-                    key = split_line[0]
-                    # get value with all units following it removed
-                    value = re.match("[.0-9]*", split_line[1]).group(0)
-                    results_dict[key] = float(value)
-            area_mm_2 = results_dict["Area"]
-            dynamic_watts = results_dict["RuntimeDynamic"]
-            num_cycles = 1.0 # value I set in template file for total number of cycles
-            # Execution time calculation from McPat
-            execution_time = num_cycles / (float(clockrate_mhz) * 10**6) 
-            # Must multiply by execution time as McPat divides by it to get Watts
-            energy_joules = dynamic_watts * execution_time
-            energy_pJ = energy_joules * 10**12 # this is to get pJ
-            
-        # record energy entry
-        entry_key = ('fpu_unit', action_name, tech_node, clockrate_mhz)
-        self.records.update({entry_key: energy_pJ})
-
-        # record area entry
-        entry_key = ('fpu_unit', 'area', tech_node, clockrate_mhz)
-        self.records.update({entry_key: area_mm_2})
-        os.system("rm " + results_file_path)  # all information recorded, no need for saving the file
-
-    def fpu_unit_estimate_area(self, interface):
-        attributes = interface['attributes']
-        tech_node = str(attributes['technology'])
-        if 'nm' in tech_node:
-            tech_node = tech_node[:-2]  # remove the unit
-        clockrate_mhz = str(attributes['clockrate'])
-        if 'mhz' in clockrate_mhz:
-            clockrate_mhz = clockrate_mhz[:-3]
-        desired_entry_key = ('fpu_unit', 'area', tech_node, clockrate_mhz)
-        if desired_entry_key not in self.records:
-            self.fpu_unit_populate_data(interface)
-        area = self.records[desired_entry_key]
-        return area # output area is in mm^2
-
-    def fpu_unit_estimate_energy(self, interface):
-        action_name = interface['action_name']
-        attributes = interface['attributes']
-        tech_node = str(attributes['technology'])
-        if 'nm' in tech_node:
-            tech_node = tech_node[:-2]  # remove the unit
-        clockrate_mhz = str(attributes['clockrate'])
-        if 'mhz' in clockrate_mhz:
-            clockrate_mhz = clockrate_mhz[:-3]
-        desired_action_name = interface['action_name']
-        desired_action_named_entry_key = ('fpu_unit', desired_action_name, tech_node, clockrate_mhz)
-        if desired_action_named_entry_key not in self.records:
-            self.fpu_unit_populate_data(interface)
-        energy = self.records[desired_action_named_entry_key]
-        return energy  # output energy is pJ
-
-    def fpu_unit_attr_supported(self, attributes):
-        return True
-
-    def fpu_unit_action_supported(self, action_name, arguments):
-        supported_actions = ['fp_instruction']
-        if action_name in supported_actions:
-            return 95
-        else:
-            return None
-
-    def mcpat_wrapper_for_fpu(self, mcpat_exec_path, tech_node, clockrate_mhz, xml_file_path):
+    def mcpat_wrapper(self, mcpat_exec_path, param_names_to_values, default_xml_file_name, xml_file_path):
         '''
         return the temporary file where the results are located
+        xml_file_path included for debugging purposes, can be removed later and a temp
+            file used instead
         '''
-        default_xml_file_name = 'default_fpu.xml'
         default_xml_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), default_xml_file_name)
         # create temporary architecture file first
         with open(default_xml_file_path, "r") as file:
-            fpu_xml = file.read()
+            temp_xml = file.read()
 
-        fpu_xml = re.sub("TECH_NODE", str(tech_node), fpu_xml)
-        fpu_xml = re.sub("CLOCKRATE", str(clockrate_mhz), fpu_xml)
+        for param_name, value in param_names_to_values.items():
+            temp_xml = re.sub(param_name, value, temp_xml)
 
+        # substitute in the values for the default xml file ie: default_fpu.xml
         with open(xml_file_path, "w") as dest_file:
-            dest_file.write(fpu_xml)
+            dest_file.write(temp_xml)
 
         # create a temporary output file to redirect terminal output of mcpat
         temp_output, temp_file_path =  tempfile.mkstemp()
@@ -259,3 +167,102 @@ class McPatWrapper:
         os.remove(xml_file_path)
         return temp_file_path
 
+    def fetch_output_stat_to_value(self, mcpat_output_string, regex_for_stats):
+        output_match_obj = re.search(regex_for_stats, mcpat_output_string)
+        output_string = output_match_obj.group(0)
+        output_string = re.sub(" ", "", output_string)
+        output_split_lines = output_string.split("\n")
+
+        results_dict = {}
+        for line in output_split_lines:
+            if "=" in line:
+                split_line = line.split("=")
+                key = split_line[0]
+                # get value with all units following it removed
+                value = re.match("[.0-9]*", split_line[1]).group(0)
+                results_dict[key] = float(value)
+        return results_dict
+
+    def calc_pj_from_watts(self, watts, clockrate_mhz):
+        num_cycles = 1.0 # value I set in template file for total number of cycles
+        execution_time = num_cycles / (float(clockrate_mhz) * 10**6) 
+        # Must multiply watts by execution time as McPat divides by it to get watts
+        energy_joules = watts * execution_time
+        energy_pj = energy_joules * 10**12
+        return energy_pj
+
+    # ----------------- FPU related ---------------------------
+    def fpu_unit_populate_data(self, tech_node, clockrate_mhz):
+        mcpat_exec_path = self.search_for_mcpat_exec_path()
+        param_names_to_values = {
+            "TECH_NODE": str(tech_node),
+            "CLOCKRATE": str(clockrate_mhz)
+        }
+        default_xml_file_name = 'default_fpu.xml'
+        xml_file_name = self.output_prefix + 'fpu.xml' if self.output_prefix is not '' else 'fpu.xml'
+        # results_file_path = self.mcpat_wrapper_for_fpu(mcpat_exec_path, tech_node, clockrate_mhz, xml_file_name)
+        results_file_path = self.mcpat_wrapper(mcpat_exec_path, param_names_to_values, default_xml_file_name, xml_file_name)
+
+        # get energy of fp instruction as this is the only energy estimate of fpu we support
+        # for mcpat right now, thus regardless of the input action name this is the energy
+        # we fetch right now
+        with open(results_file_path) as results_file:
+            mcpat_output_string = results_file.read()
+            regex_for_stats = "(Floating Point Units)(.*\n){5}(.*)"
+            results_dict = self.fetch_output_stat_to_value(mcpat_output_string, regex_for_stats)
+
+            area_mm_2 = results_dict["Area"]
+            dynamic_watts = results_dict["RuntimeDynamic"]
+            energy_pJ = self.calc_pj_from_watts(dynamic_watts, clockrate_mhz)
+            
+        # record energy entry, we only supporst fp_instruction right now as that is all
+        # McPat clearly supports, so set it here
+        entry_key = ('fpu_unit', 'fp_instruction', tech_node, clockrate_mhz)
+        self.records.update({entry_key: energy_pJ})
+
+        # record area entry
+        entry_key = ('fpu_unit', 'area', tech_node, clockrate_mhz)
+        self.records.update({entry_key: area_mm_2})
+        os.system("rm " + results_file_path)  # all information recorded, no need for saving the file
+
+    def fpu_unit_estimate_area(self, interface):
+        attributes = interface['attributes']
+        tech_node = str(attributes['technology'])
+        if 'nm' in tech_node:
+            tech_node = tech_node[:-2]  # remove the unit
+        clockrate_mhz = str(attributes['clockrate'])
+        if 'mhz' in clockrate_mhz:
+            clockrate_mhz = clockrate_mhz[:-3]
+        desired_entry_key = ('fpu_unit', 'area', tech_node, clockrate_mhz)
+        if desired_entry_key not in self.records:
+            print('Info: McPat plug-in... Querying McPat for request:\n', interface)
+            self.fpu_unit_populate_data(tech_node, clockrate_mhz)
+        area = self.records[desired_entry_key]
+        return area # output area is in mm^2
+
+    def fpu_unit_estimate_energy(self, interface):
+        action_name = interface['action_name']
+        attributes = interface['attributes']
+        tech_node = str(attributes['technology'])
+        if 'nm' in tech_node:
+            tech_node = tech_node[:-2]  # remove the unit
+        clockrate_mhz = str(attributes['clockrate'])
+        if 'mhz' in clockrate_mhz:
+            clockrate_mhz = clockrate_mhz[:-3]
+        desired_action_name = interface['action_name']
+        desired_action_named_entry_key = ('fpu_unit', desired_action_name, tech_node, clockrate_mhz)
+        if desired_action_named_entry_key not in self.records:
+            print('Info: McPat plug-in... Querying McPat for request:\n', interface)
+            self.fpu_unit_populate_data(tech_node, clockrate_mhz)
+        energy = self.records[desired_action_named_entry_key]
+        return energy  # output energy is pJ
+
+    def fpu_unit_attr_supported(self, attributes):
+        return True
+
+    def fpu_unit_action_supported(self, action_name, arguments):
+        supported_actions = ['fp_instruction']
+        if action_name in supported_actions:
+            return 95
+        else:
+            return None
