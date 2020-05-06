@@ -20,6 +20,22 @@ class McPatWrapper:
         self.supported_pc = ['fpu_unit', 'cache']
         self.records = {} # enable data reuse
 
+        self.component_to_default_xml_filename = {
+            "fpu": 'default_fpu.xml',
+            "icache": 'default_icache.xml'
+        }
+
+        self.component_to_xml_filename = {
+            "fpu": 'fpu.xml',
+            "icache": "icache.xml"
+        }
+
+        self.component_to_stats_regex = {
+            "fpu": "(Floating Point Units)(.*\n){5}(.*)",
+            "icache": "(Instruction Cache:)(.*\n){5}(.*)"
+        }
+
+
     def primitive_action_supported(self, interface):
         """
         :param interface:
@@ -145,6 +161,41 @@ class McPatWrapper:
                         mcpat_exec_path = root + os.sep + file_name
                         return mcpat_exec_path
 
+    def construct_entry_key(self, key_descriptor, param_to_val, component_type):
+        if component_type == "fpu":
+            return self.fpu_unit_construct_entry_key(key_descriptor, param_to_val)
+        elif component_type == "icache":
+            return self.icache_construct_entry_key(key_descriptor, param_to_val)
+        else:
+            raise Exception("component type: " + component_type + " not supported")
+
+    def populate_data(self, param_to_val, component_type, action_name=""):
+        default_xml_file_name = self.component_to_default_xml_filename[component_type]
+        xml_file_name = self.component_to_xml_filename[component_type]
+        xml_file_name = self.output_prefix + xml_file_name if self.output_prefix is not '' else xml_file_name
+        results_file_path = self.mcpat_wrapper(param_to_val, default_xml_file_name, xml_file_name)
+
+        # get energy of fp instruction as this is the only energy estimate of fpu we support
+        # for mcpat right now, thus regardless of the input action name this is the energy
+        # we fetch right now
+        with open(results_file_path) as results_file:
+            mcpat_output_string = results_file.read()
+            regex_for_stats = self.component_to_stats_regex[component_type]
+            results_dict = self.fetch_output_stat_to_value(mcpat_output_string, regex_for_stats)
+
+            area_mm_2 = results_dict["Area"]
+            dynamic_watts = results_dict["RuntimeDynamic"]
+            energy_pJ = self.calc_pj_from_watts(dynamic_watts, int(param_to_val["CLOCKRATE"]))
+            
+        if action_name != "":
+            entry_key = self.construct_entry_key(action_name, param_to_val, component_type)
+            self.records.update({entry_key: energy_pJ})
+
+        # record area entry
+        entry_key = self.construct_entry_key('area', param_to_val, component_type)
+        self.records.update({entry_key: area_mm_2})
+        os.system("rm " + results_file_path)  # all information recorded, no need for saving the file
+
     def mcpat_wrapper(self, param_to_val, default_xml_file_name, xml_file_path):
         '''
         return the temporary file where the results are located
@@ -230,7 +281,7 @@ class McPatWrapper:
 
         if desired_entry_key not in self.records:
             print('Info: McPat plug-in... Querying McPat for request:\n', interface)
-            self.fpu_unit_populate_data(param_to_val)
+            self.populate_data(param_to_val, "fpu")
         area = self.records[desired_entry_key]
         return area # output area is in mm^2
 
@@ -244,36 +295,9 @@ class McPatWrapper:
 
         if desired_entry_key not in self.records:
             print('Info: McPat plug-in... Querying McPat for request:\n', interface)
-            self.fpu_unit_populate_data(param_to_val)
+            self.populate_data(param_to_val, "fpu", desired_action_name)
         energy = self.records[desired_entry_key]
         return energy  # output energy is pJ
-
-    def fpu_unit_populate_data(self, param_to_val):
-        default_xml_file_name = 'default_fpu.xml'
-        xml_file_name = self.output_prefix + 'fpu.xml' if self.output_prefix is not '' else 'fpu.xml'
-        results_file_path = self.mcpat_wrapper(param_to_val, default_xml_file_name, xml_file_name)
-
-        # get energy of fp instruction as this is the only energy estimate of fpu we support
-        # for mcpat right now, thus regardless of the input action name this is the energy
-        # we fetch right now
-        with open(results_file_path) as results_file:
-            mcpat_output_string = results_file.read()
-            regex_for_stats = "(Floating Point Units)(.*\n){5}(.*)"
-            results_dict = self.fetch_output_stat_to_value(mcpat_output_string, regex_for_stats)
-
-            area_mm_2 = results_dict["Area"]
-            dynamic_watts = results_dict["RuntimeDynamic"]
-            energy_pJ = self.calc_pj_from_watts(dynamic_watts, int(param_to_val["CLOCKRATE"]))
-            
-        # record energy entry, we only supporst fp_instruction right now as that is all
-        # McPat clearly supports, so set it here
-        entry_key = self.fpu_unit_construct_entry_key('fp_instruction', param_to_val)
-        self.records.update({entry_key: energy_pJ})
-
-        # record area entry
-        entry_key = self.fpu_unit_construct_entry_key('area', param_to_val)
-        self.records.update({entry_key: area_mm_2})
-        os.system("rm " + results_file_path)  # all information recorded, no need for saving the file
 
     def fpu_unit_attr_supported(self, attributes):
         return True
@@ -357,7 +381,7 @@ class McPatWrapper:
 
         if desired_entry_key not in self.records:
             print('Info: McPat plug-in... Querying McPat for request:\n', interface)
-            self.icache_populate_data(param_to_val)
+            self.populate_data(param_to_val, "icache")
         area = self.records[desired_entry_key]
         return area # output area is in mm^2
 
@@ -366,38 +390,15 @@ class McPatWrapper:
         attributes = interface['attributes']
         param_to_val = self.icache_construct_param_to_val(attributes, action_name)
         desired_action_name = interface['action_name']
-        
+
         desired_entry_key = self.icache_construct_entry_key(desired_action_name, param_to_val)
 
         if desired_entry_key not in self.records:
             print('Info: McPat plug-in... Querying McPat for request:\n', interface)
-            self.icache_populate_data(param_to_val, desired_action_name)
+            self.populate_data(param_to_val, "icache", desired_action_name)
         energy = self.records[desired_entry_key]
         return energy  # output energy is pJ
 
-    def icache_populate_data(self, param_to_val, action_name=""):
-        default_xml_file_name = 'default_icache.xml'
-        xml_file_name = self.output_prefix + 'default_icache.xml' if self.output_prefix is not '' else 'default_icache.xml'
-
-        results_file_path = self.mcpat_wrapper(param_to_val, default_xml_file_name, xml_file_name)
-        with open(results_file_path) as results_file:
-            mcpat_output_string = results_file.read()
-            regex_for_stats = "(Instruction Cache:)(.*\n){5}(.*)"
-            results_dict = self.fetch_output_stat_to_value(mcpat_output_string, regex_for_stats)
-            area_mm_2 = results_dict["Area"]
-            dynamic_watts = results_dict["RuntimeDynamic"]
-            energy_pJ = self.calc_pj_from_watts(dynamic_watts, int(param_to_val["CLOCKRATE"]))
-        
-        # record energy entry if an action is specified
-        if action_name != "":
-            entry_key = self.icache_construct_entry_key(action_name, param_to_val)
-            self.records.update({entry_key: energy_pJ})
-
-        # record area entry
-        entry_key = self.icache_construct_entry_key('area', param_to_val)
-        self.records.update({entry_key: area_mm_2})
-        # all information recorded, no need for saving the file, so clean it up
-        os.system("rm " + results_file_path)
 
     def icache_action_supported(self, action_name, arguments):
         supported_actions = ['read_access', 'read_miss']
