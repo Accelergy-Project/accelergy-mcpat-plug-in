@@ -1,0 +1,8 @@
+# McPat source directory
+mcpat/
+
+# Temporary files
+__pycache__/
+*.pyc
+*.swp
+.DS_Store

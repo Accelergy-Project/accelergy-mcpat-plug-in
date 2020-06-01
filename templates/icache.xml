@@ -18,7 +18,7 @@
         <param name="homogeneous_L3s" value="1"/>
         <param name="homogeneous_ccs" value="1"/><!--cache coherence hardware -->
         <param name="homogeneous_NoCs" value="1"/>
-        <param name="core_tech_node" value="TECH_NODE"/><!-- nm -->
+        <param name="core_tech_node" value="$TECH_NODE"/><!-- nm -->
         <param name="target_core_clockrate" value="1000"/><!--MHz -->
         <param name="temperature" value="340"/> <!-- Kelvin -->
         <param name="number_cache_levels" value="2"/>
@@ -33,7 +33,7 @@
         <param name="virtual_memory_page_size" value="4096"/>
         <!-- address width determines the tag_width in Cache, LSQ and buffers in cache controller 
             default value is machine_bits, if not set --> 
-        <stat name="total_cycles" value="1"/>
+        <stat name="total_cycles" value="1"/> <!-- this must be get set otherwise values will be -inf, leaving as is here so that -inf makes it clear something went wrong if this isn't set rather than using some default that isn't correct and wouldn't alert user -->
         <stat name="idle_cycles" value="0"/>
         <stat name="busy_cycles"  value="0"/>
             <!--This page size(B) is complete different from the page size in Main memo section. this page size is the size of 
@@ -41,7 +41,7 @@
         <!-- *********************** cores ******************* -->
         <component id="system.core0" name="core0">
             <!-- Core property -->
-            <param name="clock_rate" value="CLOCKRATE"/>
+            <param name="clock_rate" value="$CLOCKRATE"/>
             <!-- for cores with unknown timing, set to 0 to force off the opt flag -->
             <param name="opt_local" value="0"/>
             <param name="instruction_length" value="32"/>
@@ -140,9 +140,9 @@
             <stat name="pipeline_duty_cycle" value="1"/><!--<=1, runtime_ipc/peak_ipc; averaged for all cores if homogeneous -->
             <!-- the following cycle stats are used for heterogeneous cores only, 
                 please ignore them if homogeneous cores -->
-            <stat name="total_cycles" value="1"/>
+            <stat name="total_cycles" value="0"/>
             <stat name="idle_cycles" value="0"/>
-            <stat name="busy_cycles"  value="1"/>
+            <stat name="busy_cycles"  value="0"/>
             <!-- instruction buffer stats -->
             <!-- ROB stats, both RS and Phy based OoOs have ROB
             performance simulator should capture the difference on accesses,
@@ -174,11 +174,11 @@
             <!-- Alu stats by default, the processor has one FPU that includes the divider and 
              multiplier. The fpu accesses should include accesses to multiplier and divider  -->
             <stat name="ialu_accesses" value="0"/>         
-            <stat name="fpu_accesses" value="1"/>
+            <stat name="fpu_accesses" value="0"/>
             <stat name="mul_accesses" value="0"/>
             <stat name="cdb_alu_accesses" value="0"/>
             <stat name="cdb_mul_accesses" value="0"/>
-            <stat name="cdb_fpu_accesses" value="1"/>
+            <stat name="cdb_fpu_accesses" value="0"/>
             <!-- multiple cycle accesses should be counted multiple times, 
             otherwise, McPAT can use internal counter for different floating point instructions 
             to get final accesses. But that needs detailed info for floating point inst mix -->
@@ -229,13 +229,13 @@
             <component id="system.core0.icache" name="icache">
                 <!-- there is no write requests to itlb although writes happen to it after miss, 
                 which is actually a replacement -->
-                <param name="icache_config" value="32768,8,4,1,10,10,32,0"/>
+                <param name="icache_config" value="$SIZE,$BLOCK_WIDTH,$ASSOC,1,$LATENCY,$LATENCY,32,0"/>
                 <!-- the parameters are capacity,block_width, associativity, bank, throughput w.r.t. core clock, latency w.r.t. core clock,output_width, cache policy,  -->
                 <!-- cache_policy;//0 no write or write-though with non-write allocate;1 write-back with write-allocate -->
-                <param name="buffer_sizes" value="4, 4, 4,0"/>
+                <param name="buffer_sizes" value="$MSHRS,$MSHRS,$MSHRS,0"/>
                 <!-- cache controller buffer sizes: miss_buffer_size(MSHR),fill_buffer_size,prefetch_buffer_size,wb_buffer_size--> 
-                <stat name="read_accesses" value="0"/>
-                <stat name="read_misses" value="0"/>
+                <stat name="read_accesses" value="$READ_ACCESSES"/>
+                <stat name="read_misses" value="$READ_MISSES"/>
                 <stat name="conflicts" value="0"/>              
             </component>
             <component id="system.core0.dtlb" name="dtlb">

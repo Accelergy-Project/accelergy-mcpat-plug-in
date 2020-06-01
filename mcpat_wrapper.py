@@ -16,13 +16,14 @@ class McPatWrapper:
     def __init__(self, output_prefix = ''):
         self.estimator_name =  "McPat"
         self.output_prefix = output_prefix
-        # example primitive classes supported by this estimator
-        self.supported_pc = ['fpu_unit', 'cache']
         self.records = {} # enable data reuse
 
+        # primitive classes supported by this estimator
+        self.supported_pc = ['fpu_unit', 'cache']
+
         self.component_to_default_xml_filename = {
-            "fpu": 'default_fpu.xml',
-            "icache": 'default_icache.xml'
+            "fpu": 'templates/fpu.xml',
+            "icache": 'templates/icache.xml'
         }
 
         self.component_to_xml_filename = {
@@ -172,7 +173,7 @@ class McPatWrapper:
     def populate_data(self, param_to_val, component_type, action_name=""):
         default_xml_file_name = self.component_to_default_xml_filename[component_type]
         xml_file_name = self.component_to_xml_filename[component_type]
-        xml_file_name = self.output_prefix + xml_file_name if self.output_prefix is not '' else xml_file_name
+        xml_file_name = self.output_prefix + xml_file_name if self.output_prefix != '' else xml_file_name
         results_file_path = self.mcpat_wrapper(param_to_val, default_xml_file_name, xml_file_name)
 
         # get energy of fp instruction as this is the only energy estimate of fpu we support
@@ -211,7 +212,7 @@ class McPatWrapper:
             temp_xml = file.read()
 
         for param_name, value in param_to_val.items():
-            temp_xml = re.sub(param_name, value, temp_xml)
+            temp_xml = re.sub(r"\$" + param_name, value, temp_xml)
 
         # substitute in the values for the default xml file ie: default_fpu.xml
         with open(xml_file_path, "w") as dest_file:
