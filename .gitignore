@@ -1,6 +1,9 @@
 # McPat source directory
 mcpat/
 
+# PyCharm files
+.idea/
+
 # Temporary files
 __pycache__/
 *.pyc

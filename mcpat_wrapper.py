@@ -1,23 +1,30 @@
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+from datetime import datetime
+
+# -------------------------------------------------------------------------------
+# McPat Version 1.3 wrapper for generating energy estimations of architecture components
+# -------------------------------------------------------------------------------
+
 MCPAT_ACCURACY = 80  # in your metric, please set the accuracy you think McPat's estimations are
 
-#-------------------------------------------------------------------------------
-# McPat Version 1.3 wrapper for generating energy estimations of architecture components
-#-------------------------------------------------------------------------------
-import subprocess, os, csv, glob, tempfile, math, shutil, re
-from datetime import datetime
 
 class McPatWrapper:
     """
     an estimation plug-in
     """
+
     # -------------------------------------------------------------------------------------
     # Interface functions, function name, input arguments, and output have to adhere
     # -------------------------------------------------------------------------------------
-    def __init__(self, output_prefix = ''):
-        self.estimator_name =  "McPat"
+    def __init__(self, output_prefix=''):
+        self.estimator_name = "McPat"
         self.output_prefix = output_prefix
         self.exec_path = self.search_for_mcpat_exec_path()
-        self.cache = {} # enable data reuse
+        self.cache = {}  # enable data reuse
         self.components = {
             "fpu_unit": McPatFpuUnit,
             "cache": McPatCache,
@@ -91,7 +98,6 @@ class McPatWrapper:
                 return 0
         return 0
 
-
     def estimate_area(self, interface):
         """
         :param interface:
@@ -134,14 +140,16 @@ class McPatWrapper:
                         mcpat_exec_path = root + os.sep + file_name
                         return mcpat_exec_path
 
+
 class McPatComponent:
     """
-    Base component to querry McPat
+    Base component to query McPat
     """
+
     def __init__(self, interface, wrapper):
         self.interface = interface
         self.wrapper = wrapper
-        tech_node = interface['attributes']['technology'] # technology in nm
+        tech_node = interface['attributes']['technology']  # technology in nm
         if type(tech_node) == str:
             pattern = re.compile(r"(\d*)nm")
             match = pattern.match(tech_node.lower())
@@ -149,7 +157,7 @@ class McPatComponent:
                 tech_node = int(match.group(1))
             else:
                 raise Exception("Unable to parse technology" + tech_node)
-        clockrate = interface['attributes']['clockrate'] # clockrate in mHz
+        clockrate = interface['attributes']['clockrate']  # clockrate in mHz
         if type(clockrate) == str:
             pattern = re.compile(r"(\d*)mhz")
             match = pattern.match(clockrate.lower())
@@ -164,7 +172,7 @@ class McPatComponent:
         self.area = None
         self.energy = None
 
-    def querry(self, template_type, match_string):
+    def query(self, template_type, match_string):
         template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates/" + template_type + ".xml")
         input_path = self.wrapper.output_prefix + template_type + ".xml"
 
@@ -186,13 +194,13 @@ class McPatComponent:
         temp_dir = tempfile.gettempdir()
         accelergy_tmp_dir = os.path.join(temp_dir, 'accelergy')
         if os.path.exists(accelergy_tmp_dir):
-            if len(os.listdir(accelergy_tmp_dir)) > 50: # clean up the dir if there are more than 50 files
+            if len(os.listdir(accelergy_tmp_dir)) > 50:  # clean up the dir if there are more than 50 files
                 shutil.rmtree(accelergy_tmp_dir, ignore_errors=True)
                 os.mkdir(accelergy_tmp_dir)
         else:
             os.mkdir(accelergy_tmp_dir)
         shutil.copy(input_path, os.path.join(accelergy_tmp_dir,
-            template_type + '_' + datetime.now().strftime("%m_%d_%H_%M_%S") + ".xml"))
+                                             template_type + '_' + datetime.now().strftime("%m_%d_%H_%M_%S") + ".xml"))
 
         # extract energy and area
         with open(output_path, "r") as file:
@@ -200,7 +208,8 @@ class McPatComponent:
             pattern = re.compile(match_string + r"[\w\W]*?Area = (\d*.\d*)[\w\W]*?Runtime Dynamic = (\d*.\d*)")
             match = pattern.search(output_string)
             if match is not None:
-                self.energy = float(match.group(2)) * 10**12 / (self.param["CLOCKRATE"] * 10**6) # W to pJ conversion
+                self.energy = float(match.group(2)) * 10 ** 12 / (
+                            self.param["CLOCKRATE"] * 10 ** 6)  # W to pJ conversion
                 self.area = float(match.group(1))
             else:
                 raise Exception("Unable to find field " + match_string + " in McPat output")
@@ -209,28 +218,35 @@ class McPatComponent:
         os.remove(output_path)
         os.remove(input_path)
 
+
 class McPatFpuUnit(McPatComponent):
     """
     component: fpu_unit
     actions  : fp_instruction
     """
+
     def __init__(self, interface, wrapper):
         super().__init__(interface, wrapper)
+
     def attr_supported(self):
         return True
+
     def action_supported(self):
-        return (self.interface["action_name"] == "fp_instruction")
+        return self.interface["action_name"] == "fp_instruction"
+
     def get_key(self):
-        return ('fpu_unit', self.param["TECH_NODE"], self.param["CLOCKRATE"])
+        return 'fpu_unit', self.param["TECH_NODE"], self.param["CLOCKRATE"]
+
     def get_value(self, param):
         if self.energy is None:
-            self.querry("fpu", "Floating Point Units")
+            self.query("fpu", "Floating Point Units")
         if param == "energy":
             return self.energy
         if param == "area":
             return self.area
         else:
-            raise Exception("Querry parameter " + param + " invalid")
+            raise Exception("Query parameter " + param + " invalid")
+
 
 # TODO add dcache
 class McPatCache(McPatComponent):
@@ -239,23 +255,27 @@ class McPatCache(McPatComponent):
     cache types: icache
     actions    : read_access, read_miss
     """
+
     def __init__(self, interface, wrapper):
         super().__init__(interface, wrapper)
-        self.param["SIZE"] = interface["attributes"]["size"]              # size in bytes
-        self.param["BLOCK_WIDTH"] = interface["attributes"]["block_size"] # block size in bytes
-        self.param["ASSOC"] = interface["attributes"]["associativity"]    # cache associativity
-        self.param["LATENCY"] = interface["attributes"]["hit_latency"]    # hit latency in cycles
-        self.param["MSHRS"] = interface["attributes"]["mshrs"]            # maximum outstanding requests
+        self.param["SIZE"] = interface["attributes"]["size"]               # size in bytes
+        self.param["BLOCK_WIDTH"] = interface["attributes"]["block_size"]  # block size in bytes
+        self.param["ASSOC"] = interface["attributes"]["associativity"]     # cache associativity
+        self.param["LATENCY"] = interface["attributes"]["hit_latency"]     # hit latency in cycles
+        self.param["MSHRS"] = interface["attributes"]["mshrs"]             # maximum outstanding requests
         self.param["READ_ACCESSES"] = 0
         self.param["READ_MISSES"] = 0
         if self.interface["action_name"] == "read_access":
             self.param["READ_ACCESSES"] = 1
         if self.interface["action_name"] == "read_miss":
             self.param["READ_MISSES"] = 1
+
     def attr_supported(self):
-        return (self.interface["attributes"]["cache_type"] == "icache")
+        return self.interface["attributes"]["cache_type"] == "icache"
+
     def action_supported(self):
         return self.attr_supported() and self.interface["action_name"] in ["read_access", "read_miss"]
+
     def get_key(self):
         if self.interface["attributes"]["cache_type"] == "icache":
             return ("icache", self.interface["action_name"], self.param["TECH_NODE"],
@@ -263,10 +283,11 @@ class McPatCache(McPatComponent):
                     self.param["ASSOC"], self.param["LATENCY"], self.param["MSHRS"])
         else:
             raise Exception("Cache type " + self.interface["attributes"]["cache_type"] + " not supported")
+
     def get_value(self, param):
         if self.energy is None:
             if self.interface["attributes"]["cache_type"] == "icache":
-                self.querry("icache", "Instruction Cache")
+                self.query("icache", "Instruction Cache")
             else:
                 raise Exception("Cache type " + self.interface["attributes"]["cache_type"] + " not supported")
         if param == "energy":
@@ -274,4 +295,4 @@ class McPatCache(McPatComponent):
         if param == "area":
             return self.area
         else:
-            raise Exception("Querry parameter " + param + " invalid")
+            raise Exception("Query parameter " + param + " invalid")
