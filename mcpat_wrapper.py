@@ -1,23 +1,17 @@
 import os
 import io
+import re
 import copy
 import shutil
 import subprocess
 from datetime import datetime
 import xml.etree.ElementTree as ET
-from mcpat_components import *
 
 # -------------------------------------------------------------------------------
 # McPat Version 1.3 wrapper for generating energy estimations of architecture components
 # -------------------------------------------------------------------------------
 
 MCPAT_ACCURACY = 80  # in your metric, please set the accuracy you think McPat's estimations are
-
-
-components = {
-    "fpu_unit": McPatFpuUnit,
-    "cache": McPatCache,
-}
 
 
 class McPatWrapper:
@@ -183,8 +177,8 @@ def search_for_mcpat_exec_path():
 
 
 class Properties:
-
-    tree_template = ET.parse("properties.xml")
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    tree_template = ET.parse(os.path.join(dir_path, "properties.xml"))
 
     def __init__(self):
         self.tree = copy.deepcopy(self.tree_template)
@@ -203,3 +197,107 @@ class Properties:
 
     def write(self, path):
         self.tree.write(path, encoding="utf8")
+
+
+class McPatComponent:
+    """
+    Base component to query McPat
+    """
+
+    base_properties = {
+        "system.number_of_cores": 1,
+        "system.number_of_L1Directories": 1,
+        "system.number_of_L2Directories": 1,
+        "system.number_of_L2s": 1,
+    }
+
+    def __init__(self, interface):
+        self.interface = interface
+        self.properties = self.base_properties.copy()
+
+        tech_node = interface['attributes']['technology']  # technology in nm
+        if type(tech_node) == str:
+            tech_node = re.compile(r"(\d*)nm").match(tech_node.lower()).group(1)
+        self.properties["system.core_tech_node"] = tech_node
+        self.tech_node = tech_node
+
+        clockrate = interface['attributes']['clockrate']  # clockrate in mHz
+        if type(clockrate) == str:
+            clockrate = re.compile(r"(\d*)mhz").match(clockrate.lower()).group(1)
+        self.properties["system.target_core_clockrate"] = clockrate
+        self.properties["system.core0.clock_rate"] = clockrate
+        self.clockrate = clockrate
+
+
+class McPatFpuUnit(McPatComponent):
+    """
+    component: fpu_unit
+    actions  : fp_instruction
+    """
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        self.name = "fpu_unit"
+        self.mcpat_name = "Floating Point Units"
+        self.key = 'fpu_unit', self.tech_node, self.clockrate
+
+    def attr_supported(self):
+        return True
+
+    def action_supported(self):
+        return self.interface["action_name"] == "fp_instruction"
+
+
+# TODO add dcache
+class McPatCache(McPatComponent):
+    """
+    component  : cache
+    cache types: icache
+    actions    : read_access, read_miss
+    """
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        datawidth = interface["attributes"]["datawidth"]
+        size = interface["attributes"]["size"]                    # size in bytes
+        block_size = interface["attributes"]["block_size"]        # block size in bytes
+        associativity = interface["attributes"]["associativity"]  # cache associativity
+        data_latency = interface["attributes"]["data_latency"]         # data latency in cycles
+        mshr_size = interface["attributes"]["mshr_size"]                  # maximum outstanding requests
+        write_buffer_size = interface["attributes"]["mshr_size"]                  # maximum outstanding requests
+        n_banks = interface["attributes"]["n_banks"]
+        accesses, misses = 0, 0
+        if self.interface["action_name"] == "read_access":
+            accesses = 1
+        if self.interface["action_name"] == "read_miss":
+            misses = 1
+
+        self.properties["system.total_cycles"] = 1
+        self.properties["system.busy_cycles"] = 1
+        self.properties["system.core0.icache.icache_config"] = "%s, %s, %s, %s, 10, %s, %s, 0" % (
+            size, block_size, associativity, n_banks, data_latency, datawidth)
+        self.properties["system.core0.icache.buffer_sizes"] = "%s, 4, %s, 0" % (
+            mshr_size, write_buffer_size)
+        self.properties["system.core0.icache.read_accesses"] = accesses
+        self.properties["system.core0.icache.read_misses"] = misses
+        self.properties["system.core0.icache.conflicts"] = 0
+
+        if interface["attributes"]["cache_type"] == "icache":
+            self.name = "icache"
+            self.mcpat_name = "Instruction Cache"
+            self.key = ("icache", self.interface["action_name"], self.tech_node, self.clockrate,
+                        datawidth, size, block_size, associativity, data_latency, mshr_size,
+                        write_buffer_size, n_banks)
+
+    def attr_supported(self):
+        return self.interface["attributes"]["cache_type"] == "icache"
+
+    def action_supported(self):
+        return self.attr_supported() and self.interface["action_name"] in [
+            "read_access", "read_miss", "write_access", "write_miss"]
+
+
+components = {
+    "fpu_unit": McPatFpuUnit,
+    "cache": McPatCache,
+}
