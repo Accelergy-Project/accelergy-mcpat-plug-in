@@ -82,6 +82,37 @@ print("dcache write_miss")
 test(req)
 
 
+# l2cache
+req = {
+   "class_name":"cache",
+   "attributes":{
+      "n_rd_ports":1,
+      "n_wr_ports":1,
+      "n_rdwr_ports":1,
+      "n_banks":4,
+      "cache_type":"l2cache",
+      "size":262144,
+      "associativity":8,
+      "data_latency":20,
+      "block_size":64,
+      "mshr_size":20,
+      "tag_size":64,
+      "write_buffer_size":8,
+      "technology":"45nm",
+      "datawidth":32,
+      "clockrate":999
+   },
+   "action_name":"read_access",
+   "arguments":"None"
+}
+print("l2cache read_access")
+test(req)
+
+req["action_name"] = "read_miss"
+print("l2cache read_miss")
+test(req)
+
+
 # fpu
 # # fpu fpu_instruction
 # print("fpu fpu_instruction")

@@ -264,32 +264,46 @@ class McPatCache(McPatComponent):
         mshr_size = interface["attributes"]["mshr_size"]                  # maximum outstanding requests
         write_buffer_size = interface["attributes"]["write_buffer_size"]  # write buffer size
         n_banks = interface["attributes"]["n_banks"]                      # number of cache banks
-        read_access, read_misses, write_access, write_misses = 0, 0, 0, 0
+        read_access, read_misses, write_access, write_miss = 0, 0, 0, 0
         action_name = self.interface["action_name"]
         if action_name == "read_access":
             read_access = 1
         elif action_name == "read_miss":
-            read_misses = 1
+            read_access, read_misses = 1, 1
         elif action_name == "write_access":
             write_access = 1
         elif action_name == "write_miss":
-            write_misses = 1
+            write_access, write_miss = 1, 1
 
 
         self.properties["system.total_cycles"] = 1
         self.properties["system.busy_cycles"] = 1
 
         cache_type = self.interface["attributes"]["cache_type"]
-        self.properties["system.core0.%s.%s_config" % (cache_type, cache_type)] = \
-            "%s, %s, %s, %s, 1, %s, %s, 0" % (size, block_size, associativity, n_banks, data_latency, datawidth)
-        self.properties["system.core0.%s.buffer_sizes" % cache_type] = \
-            "%s, 4, %s, 0" % (mshr_size, write_buffer_size)
-        self.properties["system.core0.%s.read_accesses" % cache_type] = read_access
-        self.properties["system.core0.%s.read_misses" % cache_type] = read_misses
-        self.properties["system.core0.%s.conflicts" % cache_type] = 0
+        if cache_type == "icache":
+            mcpat_path = "system.core0.icache"
+            mcpat_config_path = "system.core0.icache.icache_config"
+            pass
+        elif cache_type == "dcache":
+            mcpat_path = "system.core0.dcache"
+            mcpat_config_path = "system.core0.dcache.dcache_config"
+        else:
+            mcpat_path = "system.L20"
+            mcpat_config_path = "system.L20.L2_config"
+
+        self.properties[mcpat_config_path] = \
+            "%s, %s, %s, %s, 1, %s, %s, 0" % \
+            (size, block_size, associativity, n_banks, data_latency, datawidth)
+        self.properties["%s.buffer_sizes" % mcpat_path] = \
+            "%s, 4, 4, %s" % (mshr_size, write_buffer_size)
+        self.properties["%s.read_accesses" % mcpat_path] = read_access
+        self.properties["%s.read_misses" % mcpat_path] = read_misses
+        self.properties["%s.conflicts" % mcpat_path] = 0
         if cache_type != "icache":
-            self.properties["system.core0.%s.write_accesses" % cache_type] = write_access
-            self.properties["system.core0.%s.write_misses" % cache_type] = write_misses
+            self.properties["%s.write_accesses" % mcpat_path] = write_access
+            self.properties["%s.write_misses" % mcpat_path] = write_miss
+        if cache_type == "l2cache":
+            self.properties["%s.clockrate" % mcpat_path] = self.clockrate
 
         self.name = cache_type
         self.key = (cache_type, self.interface["action_name"], self.tech_node, self.clockrate,
@@ -299,16 +313,18 @@ class McPatCache(McPatComponent):
             self.mcpat_name = "Instruction Cache"
         elif cache_type == "dcache":
             self.mcpat_name = "Data Cache"
+        else:
+            self.mcpat_name = "\*\*\*\nL2"
 
 
     def attr_supported(self):
-        return self.interface["attributes"]["cache_type"] in ["icache", "dcache"]
+        return self.interface["attributes"]["cache_type"] in ["icache", "dcache", "l2cache"]
 
     def action_supported(self):
         cache_type = self.interface["attributes"]["cache_type"]
         if cache_type == "icache":
             return self.interface["action_name"] in ["read_access", "read_miss"]
-        elif cache_type == "dcache":
+        elif cache_type in ["dcache", "l2cache"]:
             return self.interface["action_name"] in ["read_access", "read_miss", "write_access", "write_miss"]
         else:
             return False

@@ -1,0 +1,50 @@
+/homes/frwang/urop/accelergy-mcpat-plug-in/mcpat/mcpat 
+
+icache read_access
+action supported  80
+action energy     79.22562562562563 pJ
+area supported    80
+area              0.654962 mm^2
+
+icache read_miss
+action supported  80
+action energy     700.5945945945946 pJ
+area supported    80
+area              0.654962 mm^2
+
+dcache read_access
+action supported  80
+action energy     99.84054054054054 pJ
+area supported    80
+area              0.866862 mm^2
+
+dcache read_miss
+action supported  80
+action energy     628.3283283283283 pJ
+area supported    80
+area              0.866862 mm^2
+
+dcache write_access
+action supported  80
+action energy     126.61061061061062 pJ
+area supported    80
+area              0.866862 mm^2
+
+dcache write_miss
+action supported  80
+action energy     127.85985985985988 pJ
+area supported    80
+area              0.866862 mm^2
+
+l2cache read_access
+action supported  80
+action energy     203.83583583583584 pJ
+area supported    80
+area              2.08863 mm^2
+
+l2cache read_miss
+action supported  80
+action energy     4.974884884884885 pJ
+area supported    80
+area              2.08863 mm^2
+
