@@ -4,6 +4,7 @@ from mcpat_wrapper import *
 wrapper = McPatWrapper(clean_output_files=False)
 print(wrapper.exec_path, "\n")
 
+
 def test(interface):
     print("action supported ", wrapper.primitive_action_supported(interface))
     print("action energy    ", wrapper.estimate_energy(interface), "pJ")
@@ -11,22 +12,14 @@ def test(interface):
     print("area             ", wrapper.estimate_area(interface), "mm^2\n")
 
 
-# # fpu fpu_instruction
-# print("fpu fpu_instruction")
-# test({'class_name': 'fpu_unit',
-#       'attributes': OrderedDict([
-#           ('technology', '45nm'), ('clockrate', 1000), ('datawidth', 32), ('exponent', 8), ('mantissa', 24)
-#       ]),
-#       'action_name': 'fp_instruction', 'arguments': None})
-
-print("icache read_access")
-test({
+# icache
+req = {
    "class_name":"cache",
    "attributes":{
       "n_rd_ports":1,
       "n_wr_ports":1,
       "n_rdwr_ports":1,
-      "n_banks":4,
+      "n_banks":1,
       "cache_type":"icache",
       "size":16384,
       "associativity":2,
@@ -41,18 +34,25 @@ test({
    },
    "action_name":"read_access",
    "arguments":"None"
-})
+}
+print("icache read_access")
+test(req)
 
+req["action_name"] = "read_miss"
 print("icache read_miss")
-test({
+test(req)
+
+
+# dcache
+req = {
    "class_name":"cache",
    "attributes":{
       "n_rd_ports":1,
       "n_wr_ports":1,
       "n_rdwr_ports":1,
-      "n_banks":4,
-      "cache_type":"icache",
-      "size":16384,
+      "n_banks":1,
+      "cache_type":"dcache",
+      "size":65536,
       "associativity":2,
       "data_latency":2,
       "block_size":64,
@@ -63,7 +63,30 @@ test({
       "datawidth":32,
       "clockrate":999
    },
-   "action_name":"read_miss",
+   "action_name":"read_access",
    "arguments":"None"
-})
+}
+print("dcache read_access")
+test(req)
 
+req["action_name"] = "read_miss"
+print("dcache read_miss")
+test(req)
+
+req["action_name"] = "write_access"
+print("dcache write_access")
+test(req)
+
+req["action_name"] = "write_miss"
+print("dcache write_miss")
+test(req)
+
+
+# fpu
+# # fpu fpu_instruction
+# print("fpu fpu_instruction")
+# test({'class_name': 'fpu_unit',
+#       'attributes': OrderedDict([
+#           ('technology', '45nm'), ('clockrate', 1000), ('datawidth', 32), ('exponent', 8), ('mantissa', 24)
+#       ]),
+#       'action_name': 'fp_instruction', 'arguments': None})

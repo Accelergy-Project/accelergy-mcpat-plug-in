@@ -1,10 +1,7 @@
 import os
-import io
 import re
 import copy
-import shutil
 import subprocess
-from datetime import datetime
 import xml.etree.ElementTree as ET
 
 # -------------------------------------------------------------------------------
@@ -125,8 +122,9 @@ class McPatWrapper:
 
     def query_mcpat(self, component):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        properties_path = os.path.join(dir_path, "properties-%s.xml" % component.name)
-        output_path = os.path.join(dir_path, "mcpat-%s" % component.name)
+        action_name = component.interface["action_name"]
+        properties_path = os.path.join(dir_path, "properties-%s-%s.xml" % (component.name, action_name))
+        output_path = os.path.join(dir_path, "mcpat-%s-%s" % (component.name, action_name))
         properties = Properties()
         for path, value in component.properties.items():
             success = properties.replace(path, value)
@@ -259,42 +257,61 @@ class McPatCache(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         datawidth = interface["attributes"]["datawidth"]
-        size = interface["attributes"]["size"]                    # size in bytes
-        block_size = interface["attributes"]["block_size"]        # block size in bytes
-        associativity = interface["attributes"]["associativity"]  # cache associativity
-        data_latency = interface["attributes"]["data_latency"]         # data latency in cycles
+        size = interface["attributes"]["size"]                            # size in bytes
+        block_size = interface["attributes"]["block_size"]                # block size in bytes
+        associativity = interface["attributes"]["associativity"]          # cache associativity
+        data_latency = interface["attributes"]["data_latency"]            # data latency in cycles
         mshr_size = interface["attributes"]["mshr_size"]                  # maximum outstanding requests
-        write_buffer_size = interface["attributes"]["mshr_size"]                  # maximum outstanding requests
-        n_banks = interface["attributes"]["n_banks"]
-        accesses, misses = 0, 0
-        if self.interface["action_name"] == "read_access":
-            accesses = 1
-        if self.interface["action_name"] == "read_miss":
-            misses = 1
+        write_buffer_size = interface["attributes"]["write_buffer_size"]  # write buffer size
+        n_banks = interface["attributes"]["n_banks"]                      # number of cache banks
+        read_access, read_misses, write_access, write_misses = 0, 0, 0, 0
+        action_name = self.interface["action_name"]
+        if action_name == "read_access":
+            read_access = 1
+        elif action_name == "read_miss":
+            read_misses = 1
+        elif action_name == "write_access":
+            write_access = 1
+        elif action_name == "write_miss":
+            write_misses = 1
+
 
         self.properties["system.total_cycles"] = 1
         self.properties["system.busy_cycles"] = 1
-        self.properties["system.core0.icache.icache_config"] = "%s, %s, %s, %s, 10, %s, %s, 0" % (
-            size, block_size, associativity, n_banks, data_latency, datawidth)
-        self.properties["system.core0.icache.buffer_sizes"] = "%s, 4, %s, 0" % (
-            mshr_size, write_buffer_size)
-        self.properties["system.core0.icache.read_accesses"] = accesses
-        self.properties["system.core0.icache.read_misses"] = misses
-        self.properties["system.core0.icache.conflicts"] = 0
 
-        if interface["attributes"]["cache_type"] == "icache":
-            self.name = "icache"
+        cache_type = self.interface["attributes"]["cache_type"]
+        self.properties["system.core0.%s.%s_config" % (cache_type, cache_type)] = \
+            "%s, %s, %s, %s, 1, %s, %s, 0" % (size, block_size, associativity, n_banks, data_latency, datawidth)
+        self.properties["system.core0.%s.buffer_sizes" % cache_type] = \
+            "%s, 4, %s, 0" % (mshr_size, write_buffer_size)
+        self.properties["system.core0.%s.read_accesses" % cache_type] = read_access
+        self.properties["system.core0.%s.read_misses" % cache_type] = read_misses
+        self.properties["system.core0.%s.conflicts" % cache_type] = 0
+        if cache_type != "icache":
+            self.properties["system.core0.%s.write_accesses" % cache_type] = write_access
+            self.properties["system.core0.%s.write_misses" % cache_type] = write_misses
+
+        self.name = cache_type
+        self.key = (cache_type, self.interface["action_name"], self.tech_node, self.clockrate,
+                    datawidth, size, block_size, associativity, data_latency, mshr_size,
+                    write_buffer_size, n_banks)
+        if cache_type == "icache":
             self.mcpat_name = "Instruction Cache"
-            self.key = ("icache", self.interface["action_name"], self.tech_node, self.clockrate,
-                        datawidth, size, block_size, associativity, data_latency, mshr_size,
-                        write_buffer_size, n_banks)
+        elif cache_type == "dcache":
+            self.mcpat_name = "Data Cache"
+
 
     def attr_supported(self):
-        return self.interface["attributes"]["cache_type"] == "icache"
+        return self.interface["attributes"]["cache_type"] in ["icache", "dcache"]
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in [
-            "read_access", "read_miss", "write_access", "write_miss"]
+        cache_type = self.interface["attributes"]["cache_type"]
+        if cache_type == "icache":
+            return self.interface["action_name"] in ["read_access", "read_miss"]
+        elif cache_type == "dcache":
+            return self.interface["action_name"] in ["read_access", "read_miss", "write_access", "write_miss"]
+        else:
+            return False
 
 
 components = {
