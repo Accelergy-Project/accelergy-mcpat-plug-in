@@ -140,14 +140,17 @@ class McPatWrapper:
         # parse mcpat output
         with open(output_path, "r") as file:
             output_string = file.read()
-            pattern = re.compile(component.mcpat_name + r"[\w\W]*?Area = (\d*.\d*)[\w\W]*?Runtime Dynamic = (\d*.\d*)")
-            match = pattern.search(output_string)
-            if match:
-                energy = float(match.group(2)) * 10 ** 12 / (
-                        int(component.clockrate) * 10 ** 6)  # W to pJ conversion
-                area = float(match.group(1))
-            else:
-                raise Exception("Unable to find component " + component.mcpat_name + " in McPat output")
+            energy = 0
+            area = 0
+            for mcpat_pattern in component.mcpat_patterns:
+                pattern = re.compile(mcpat_pattern + r"[\w\W]*?Area = (\d*.\d*)[\w\W]*?Runtime Dynamic = (\d*.\d*)")
+                match = pattern.search(output_string)
+                if match:
+                    energy += float(match.group(2)) * 10 ** 12 / (
+                              int(component.clockrate) * 10 ** 6)  # W to pJ conversion
+                    area += float(match.group(1))
+                else:
+                    raise Exception("Unable to find component " + mcpat_pattern + " in McPat output")
         if self.clean_output_files:
             os.remove(properties_path)
             os.remove(output_path)
@@ -236,7 +239,7 @@ class McPatFpuUnit(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         self.name = "fpu_unit"
-        self.mcpat_name = "Floating Point Units"
+        self.mcpat_patterns = ["Floating Point Units"]
         self.key = 'fpu_unit', self.tech_node, self.clockrate
 
     def attr_supported(self):
@@ -275,6 +278,10 @@ class McPatCache(McPatComponent):
         elif action_name == "write_miss":
             write_access, write_miss = 1, 1
 
+        config_string = "%s, %s, %s, %s, 1, %s, %s, 0" % \
+            (size, block_size, associativity, n_banks, data_latency, datawidth)
+        buffer_string = "%s, 4, 4, %s" % (mshr_size, write_buffer_size)
+
 
         self.properties["system.total_cycles"] = 1
         self.properties["system.busy_cycles"] = 1
@@ -283,38 +290,65 @@ class McPatCache(McPatComponent):
         if cache_type == "icache":
             mcpat_path = "system.core0.icache"
             mcpat_config_path = "system.core0.icache.icache_config"
-            pass
+            self.properties[mcpat_config_path] = config_string
+            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
+            self.properties["%s.read_accesses" % mcpat_path] = read_access
+            self.properties["%s.read_misses" % mcpat_path] = read_misses
+            self.properties["%s.conflicts" % mcpat_path] = 0
         elif cache_type == "dcache":
             mcpat_path = "system.core0.dcache"
             mcpat_config_path = "system.core0.dcache.dcache_config"
+            self.properties[mcpat_config_path] = config_string
+            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
+            self.properties["%s.read_accesses" % mcpat_path] = read_access
+            self.properties["%s.read_misses" % mcpat_path] = read_misses
+            self.properties["%s.write_accesses" % mcpat_path] = write_access
+            self.properties["%s.write_misses" % mcpat_path] = write_miss
+            self.properties["%s.conflicts" % mcpat_path] = 0
+            mcpat_path = "system.L1Directory0"
+            mcpat_config_path = "system.L1Directory0.Dir_config"
+            self.properties[mcpat_config_path] = config_string
+            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
+            self.properties["%s.read_accesses" % mcpat_path] = read_access
+            self.properties["%s.read_misses" % mcpat_path] = read_misses
+            self.properties["%s.write_accesses" % mcpat_path] = write_access
+            self.properties["%s.write_misses" % mcpat_path] = write_miss
+            self.properties["%s.conflicts" % mcpat_path] = 0
+            self.properties["%s.clockrate" % mcpat_path] = self.clockrate
+            # self.properties["%s.duty_cycle" % mcpat_path] = 1
         else:
             mcpat_path = "system.L20"
             mcpat_config_path = "system.L20.L2_config"
-
-        self.properties[mcpat_config_path] = \
-            "%s, %s, %s, %s, 1, %s, %s, 0" % \
-            (size, block_size, associativity, n_banks, data_latency, datawidth)
-        self.properties["%s.buffer_sizes" % mcpat_path] = \
-            "%s, 4, 4, %s" % (mshr_size, write_buffer_size)
-        self.properties["%s.read_accesses" % mcpat_path] = read_access
-        self.properties["%s.read_misses" % mcpat_path] = read_misses
-        self.properties["%s.conflicts" % mcpat_path] = 0
-        if cache_type != "icache":
+            self.properties[mcpat_config_path] = config_string
+            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
+            self.properties["%s.read_accesses" % mcpat_path] = read_access
+            self.properties["%s.read_misses" % mcpat_path] = read_misses
             self.properties["%s.write_accesses" % mcpat_path] = write_access
             self.properties["%s.write_misses" % mcpat_path] = write_miss
-        if cache_type == "l2cache":
+            self.properties["%s.conflicts" % mcpat_path] = 0
             self.properties["%s.clockrate" % mcpat_path] = self.clockrate
+            mcpat_path = "system.L2Directory0"
+            mcpat_config_path = "system.L2Directory0.Dir_config"
+            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
+            self.properties["%s.read_accesses" % mcpat_path] = read_access
+            self.properties["%s.read_misses" % mcpat_path] = read_misses
+            self.properties["%s.write_accesses" % mcpat_path] = write_access
+            self.properties["%s.write_misses" % mcpat_path] = write_miss
+            self.properties["%s.conflicts" % mcpat_path] = 0
+            self.properties["%s.clockrate" % mcpat_path] = self.clockrate
+            # self.properties["%s.duty_cycle" % mcpat_path] = 1
+
 
         self.name = cache_type
         self.key = (cache_type, self.interface["action_name"], self.tech_node, self.clockrate,
                     datawidth, size, block_size, associativity, data_latency, mshr_size,
                     write_buffer_size, n_banks)
         if cache_type == "icache":
-            self.mcpat_name = "Instruction Cache"
+            self.mcpat_patterns = ["Instruction Cache"]
         elif cache_type == "dcache":
-            self.mcpat_name = "Data Cache"
+            self.mcpat_patterns = ["Data Cache", "Total First Level Directory"]
         else:
-            self.mcpat_name = "\*\*\*\nL2"
+            self.mcpat_patterns = ["\*\*\*\nL2", "Total Second Level Directory"]
 
 
     def attr_supported(self):

@@ -14,37 +14,37 @@ area              0.654962 mm^2
 
 dcache read_access
 action supported  80
-action energy     99.84054054054054 pJ
+action energy     486.67837837837834 pJ
 area supported    80
-area              0.866862 mm^2
+area              3.845072 mm^2
 
 dcache read_miss
 action supported  80
-action energy     628.3283283283283 pJ
+action energy     1015.1661661661661 pJ
 area supported    80
-area              0.866862 mm^2
+area              3.845072 mm^2
 
 dcache write_access
 action supported  80
-action energy     126.61061061061062 pJ
+action energy     340.03803803803805 pJ
 area supported    80
-area              0.866862 mm^2
+area              3.845072 mm^2
 
 dcache write_miss
 action supported  80
-action energy     127.85985985985988 pJ
+action energy     341.2872872872873 pJ
 area supported    80
-area              0.866862 mm^2
+area              3.845072 mm^2
 
 l2cache read_access
 action supported  80
-action energy     203.83583583583584 pJ
+action energy     336.8738738738739 pJ
 area supported    80
-area              2.08863 mm^2
+area              10.99543 mm^2
 
 l2cache read_miss
 action supported  80
-action energy     4.974884884884885 pJ
+action energy     19.935845845845847 pJ
 area supported    80
-area              2.08863 mm^2
+area              10.99543 mm^2
 
