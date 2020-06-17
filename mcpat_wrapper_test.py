@@ -113,11 +113,16 @@ print("l2cache read_miss")
 test(req)
 
 
-# fpu
-# # fpu fpu_instruction
-# print("fpu fpu_instruction")
-# test({'class_name': 'fpu_unit',
-#       'attributes': OrderedDict([
-#           ('technology', '45nm'), ('clockrate', 1000), ('datawidth', 32), ('exponent', 8), ('mantissa', 24)
-#       ]),
-#       'action_name': 'fp_instruction', 'arguments': None})
+# fpu fpu_instruction
+req = {
+    "class_name": "fpu_unit",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":1000,
+        "datawidth":32
+    },
+    "action_name":"fp_instruction",
+    "arguments":"None"
+}
+print("fpu fpu_instruction")
+test(req)

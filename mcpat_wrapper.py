@@ -238,15 +238,21 @@ class McPatFpuUnit(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
+        self.datawidth = interface["attributes"]["datawidth"]
+
+        self.properties["system.total_cycles"] = 1
+        self.properties["system.busy_cycles"] = 1
+        self.properties["system.core0.fpu_accesses"] = 1
+
         self.name = "fpu_unit"
-        self.mcpat_patterns = ["Floating Point Units"]
         self.key = 'fpu_unit', self.tech_node, self.clockrate
+        self.mcpat_patterns = ["Floating Point Units"]
 
     def attr_supported(self):
-        return True
+        return self.datawidth == 32
 
     def action_supported(self):
-        return self.interface["action_name"] == "fp_instruction"
+        return self.attr_supported() and self.interface["action_name"] == "fp_instruction"
 
 
 # TODO add dcache
