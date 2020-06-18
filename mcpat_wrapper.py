@@ -201,9 +201,6 @@ class Properties:
 
 
 class McPatComponent:
-    """
-    Base component to query McPat
-    """
 
     base_properties = {
         "system.number_of_cores": 1,
@@ -230,38 +227,44 @@ class McPatComponent:
         self.clockrate = clockrate
 
 
-class McPatFpuUnit(McPatComponent):
-    """
-    component: fpu_unit
-    actions  : fp_instruction
-    """
+class McPatFuncUnit(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
         self.datawidth = interface["attributes"]["datawidth"]
+        self.type = interface["attributes"]["type"]
+
+        fpu_access, int_alu_access, mul_alu_access = 0, 0, 0
+        if self.type == "fpu":
+            fpu_access = 1
+        elif self.type == "int_alu":
+            int_alu_access = 1
+        else:
+            mul_alu_access = 1
 
         self.properties["system.total_cycles"] = 1
         self.properties["system.busy_cycles"] = 1
-        self.properties["system.core0.fpu_accesses"] = 1
+        self.properties["system.core0.fpu_accesses"] = fpu_access
+        self.properties["system.core0.ialu_accesses"] = int_alu_access
+        self.properties["system.core0.mul_accesses"] = mul_alu_access
 
-        self.name = "fpu_unit"
-        self.key = 'fpu_unit', self.tech_node, self.clockrate
-        self.mcpat_patterns = ["Floating Point Units"]
+        self.name = self.type
+        self.key = 'func_unit', self.type, self.tech_node, self.clockrate
+        if self.type == "fpu":
+            self.mcpat_patterns = ["Floating Point Units"]
+        elif self.type == "int_alu":
+            self.mcpat_patterns = ["Integer ALUs"]
+        else:
+            self.mcpat_patterns = ["Complex ALUs"]
 
     def attr_supported(self):
-        return self.datawidth == 32
+        return self.datawidth == 32 and self.type in ["fpu", "int_alu", "mul_alu"]
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] == "fp_instruction"
+        return self.attr_supported() and self.interface["action_name"] == "instruction"
 
 
-# TODO add dcache
 class McPatCache(McPatComponent):
-    """
-    component  : cache
-    cache types: icache
-    actions    : read_access, read_miss
-    """
 
     def __init__(self, interface):
         super().__init__(interface)
@@ -371,6 +374,6 @@ class McPatCache(McPatComponent):
 
 
 components = {
-    "fpu_unit": McPatFpuUnit,
+    "func_unit": McPatFuncUnit,
     "cache": McPatCache,
 }

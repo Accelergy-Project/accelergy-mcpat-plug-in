@@ -113,16 +113,25 @@ print("l2cache read_miss")
 test(req)
 
 
-# fpu fpu_instruction
+# func units
 req = {
-    "class_name": "fpu_unit",
+    "class_name": "func_unit",
     "attributes":{
         "technology":"45nm",
         "clockrate":1000,
-        "datawidth":32
+        "datawidth":32,
+        "type":"fpu"
     },
-    "action_name":"fp_instruction",
+    "action_name":"instruction",
     "arguments":"None"
 }
-print("fpu fpu_instruction")
+print("fpu instruction")
+test(req)
+
+req["attributes"]["type"] = "int_alu"
+print("int_alu instruction")
+test(req)
+
+req["attributes"]["type"] = "mul_alu"
+print("mul_alu instruction")
 test(req)

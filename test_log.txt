@@ -48,9 +48,21 @@ action energy     19.935845845845847 pJ
 area supported    80
 area              10.99543 mm^2
 
-fpu fpu_instruction
+fpu instruction
 action supported  80
 action energy     23.7299 pJ
 area supported    80
 area              1.22925 mm^2
+
+int_alu instruction
+action supported  80
+action energy     7.909980000000001 pJ
+area supported    80
+area              0.117718 mm^2
+
+mul_alu instruction
+action supported  80
+action energy     15.82 pJ
+area supported    80
+area              0.117718 mm^2
 
