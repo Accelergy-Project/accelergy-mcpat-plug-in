@@ -66,3 +66,8 @@ action energy     15.82 pJ
 area supported    80
 area              0.117718 mm^2
 
+xbar access
+action supported  80
+action energy     183.261 pJ
+area supported    80
+area              0.0628561 mm^2

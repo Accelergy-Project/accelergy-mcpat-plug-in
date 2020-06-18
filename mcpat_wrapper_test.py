@@ -135,3 +135,23 @@ test(req)
 req["attributes"]["type"] = "mul_alu"
 print("mul_alu instruction")
 test(req)
+
+
+# xbar
+req = {
+    "class_name": "xbar",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":1000,
+        "datawidth":32,
+        "horizontal_nodes":1,
+        "vertical_nodes": 1,
+        "link_throughput": 1,
+        "link_latency": 2,
+        "flit_bytes": 16
+    },
+    "action_name":"access",
+    "arguments":"None"
+}
+print("xbar access")
+test(req)

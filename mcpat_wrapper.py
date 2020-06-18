@@ -226,6 +226,9 @@ class McPatComponent:
         self.properties["system.core0.clock_rate"] = clockrate
         self.clockrate = clockrate
 
+        self.properties["system.total_cycles"] = 1
+        self.properties["system.busy_cycles"] = 1
+
 
 class McPatFuncUnit(McPatComponent):
 
@@ -242,8 +245,6 @@ class McPatFuncUnit(McPatComponent):
         else:
             mul_alu_access = 1
 
-        self.properties["system.total_cycles"] = 1
-        self.properties["system.busy_cycles"] = 1
         self.properties["system.core0.fpu_accesses"] = fpu_access
         self.properties["system.core0.ialu_accesses"] = int_alu_access
         self.properties["system.core0.mul_accesses"] = mul_alu_access
@@ -262,6 +263,37 @@ class McPatFuncUnit(McPatComponent):
 
     def action_supported(self):
         return self.attr_supported() and self.interface["action_name"] == "instruction"
+
+
+class McPatXBar(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        horizontal_nodes = interface["attributes"]["horizontal_nodes"]
+        vertical_nodes = interface["attributes"]["vertical_nodes"]
+        throughput = interface["attributes"]["link_throughput"]
+        latency = interface["attributes"]["link_latency"]
+        flit_bits = interface["attributes"]["flit_bytes"] * 8
+
+        self.properties["system.noc0.clockrate"] = self.clockrate
+        self.properties["system.noc0.horizontal_nodes"] = horizontal_nodes
+        self.properties["system.noc0.vertical_nodes"] = vertical_nodes
+        self.properties["system.noc0.link_throughput"] = throughput
+        self.properties["system.noc0.link_latency"] = latency
+        self.properties["system.noc0.flit_bits"] = flit_bits
+        self.properties["system.noc0.total_accesses"] = 1
+
+        self.name = "xbar"
+        self.key = ("xbar", self.tech_node, self.clockrate, horizontal_nodes,
+                    vertical_nodes, throughput, latency, flit_bits)
+        self.mcpat_patterns = ["Total NoCs"]
+
+    def attr_supported(self):
+        return True
+
+    def action_supported(self):
+        return self.interface["action_name"] == "access"
+
 
 
 class McPatCache(McPatComponent):
@@ -291,9 +323,6 @@ class McPatCache(McPatComponent):
             (size, block_size, associativity, n_banks, data_latency, datawidth)
         buffer_string = "%s, 4, 4, %s" % (mshr_size, write_buffer_size)
 
-
-        self.properties["system.total_cycles"] = 1
-        self.properties["system.busy_cycles"] = 1
 
         cache_type = self.interface["attributes"]["cache_type"]
         if cache_type == "icache":
@@ -375,5 +404,6 @@ class McPatCache(McPatComponent):
 
 components = {
     "func_unit": McPatFuncUnit,
-    "cache": McPatCache,
+    "xbar": McPatXBar,
+    "cache": McPatCache
 }
