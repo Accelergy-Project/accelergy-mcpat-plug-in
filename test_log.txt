@@ -48,6 +48,18 @@ action energy     19.935845845845847 pJ
 area supported    80
 area              10.99543 mm^2
 
+l2cache write_access
+action supported  80
+action energy     391.41141141141145 pJ
+area supported    80
+area              10.99543 mm^2
+
+l2cache write_miss
+action supported  80
+action energy     1468.5675675675675 pJ
+area supported    80
+area              10.99543 mm^2
+
 fpu instruction
 action supported  80
 action energy     23.7299 pJ

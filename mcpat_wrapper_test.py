@@ -112,6 +112,13 @@ req["action_name"] = "read_miss"
 print("l2cache read_miss")
 test(req)
 
+req["action_name"] = "write_access"
+print("l2cache write_access")
+test(req)
+
+req["action_name"] = "write_miss"
+print("l2cache write_miss")
+test(req)
 
 # func units
 req = {
