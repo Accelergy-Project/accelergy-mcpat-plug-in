@@ -439,9 +439,41 @@ class McPatTournamentBP(McPatComponent):
         return self.attr_supported() and self.interface["action_name"] in ["access", "miss"]
 
 
+class McPatCpuRegfile(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        self.datawidth = interface["attributes"]["datawidth"]
+        action_name = self.interface["action_name"]
+        if action_name == "read":
+            read, write = 1, 0
+        elif action_name == "write":
+            read, write = 0, 1
+
+        regfile_type = self.interface["attributes"]["type"]
+        if regfile_type == "int":
+            self.properties["system.core0.int_regfile_reads"] = read
+            self.properties["system.core0.int_regfile_writes"] = write
+            self.mcpat_patterns = ["Integer RF"]
+        elif regfile_type == "fp":
+            self.properties["system.core0.float_regfile_reads"] = read
+            self.properties["system.core0.float_regfile_writes"] = write
+            self.mcpat_patterns = ["Floating Point RF"]
+
+        self.name = "cpu_regfile"
+        self.key = ("cpu_regfile", action_name, regfile_type, self.tech_node, self.clockrate)
+
+    def attr_supported(self):
+        return self.datawidth == 32 and self.interface["attributes"]["type"] in ["int", "fp"]
+
+    def action_supported(self):
+        return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
+
+
 components = {
     "func_unit": McPatFuncUnit,
     "xbar": McPatXBar,
     "cache": McPatCache,
-    "tournament_bp": McPatTournamentBP
+    "tournament_bp": McPatTournamentBP,
+    "cpu_regfile": McPatCpuRegfile
 }

@@ -181,7 +181,36 @@ req = {
 }
 print("tournament_bp access")
 test(req)
-print("tournament_bp miss")
+
 req["action_name"] = "miss"
+print("tournament_bp miss")
+test(req)
+
+# cpu_regfile
+req = {
+    "class_name": "cpu_regfile",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":1000,
+        "datawidth":32,
+        "type":"int"
+    },
+    "action_name":"read",
+    "arguments":"None"
+}
+print("cpu_regfile int read")
+test(req)
+
+print("cpu_regfile int write")
+req["action_name"] = "write"
+test(req)
+
+print("cpu_regfile fp read")
+req["attributes"]["type"] = "fp"
+req["action_name"] = "read"
+test(req)
+
+print("cpu_regfile fp write")
+req["action_name"] = "write"
 test(req)
 
