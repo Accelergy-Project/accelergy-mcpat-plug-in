@@ -2,7 +2,6 @@ from collections import OrderedDict
 from mcpat_wrapper import *
 
 wrapper = McPatWrapper(clean_output_files=False)
-print(wrapper.exec_path, "\n")
 
 
 def test(interface):
@@ -84,7 +83,7 @@ test(req)
 
 # l2cache
 req = {
-   "class_name":"cache",
+    "class_name":"cache",
    "attributes":{
       "n_rd_ports":1,
       "n_wr_ports":1,
@@ -162,3 +161,27 @@ req = {
 }
 print("xbar access")
 test(req)
+
+# tournament_bp
+req = {
+    "class_name": "tournament_bp",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":1000,
+        "datawidth":32,
+        "local_pred_entries": 2048,
+        "local_pred_bits": 2,
+        "global_pred_entries": 8192,
+        "global_pred_bits": 2,
+        "choice_pred_entries": 8196,
+        "choice_pred_bits": 2
+    },
+    "action_name":"access",
+    "arguments":"None"
+}
+print("tournament_bp access")
+test(req)
+print("tournament_bp miss")
+req["action_name"] = "miss"
+test(req)
+

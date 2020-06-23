@@ -295,7 +295,6 @@ class McPatXBar(McPatComponent):
         return self.interface["action_name"] == "access"
 
 
-
 class McPatCache(McPatComponent):
 
     def __init__(self, interface):
@@ -322,7 +321,6 @@ class McPatCache(McPatComponent):
         config_string = "%s, %s, %s, %s, 1, %s, %s, 0" % \
             (size, block_size, associativity, n_banks, data_latency, datawidth)
         buffer_string = "%s, 4, 4, %s" % (mshr_size, write_buffer_size)
-
 
         cache_type = self.interface["attributes"]["cache_type"]
         if cache_type == "icache":
@@ -376,9 +374,8 @@ class McPatCache(McPatComponent):
             self.properties["%s.clockrate" % mcpat_path] = self.clockrate
             # self.properties["%s.duty_cycle" % mcpat_path] = 1
 
-
         self.name = cache_type
-        self.key = (cache_type, self.interface["action_name"], self.tech_node, self.clockrate,
+        self.key = (cache_type, action_name, self.tech_node, self.clockrate,
                     datawidth, size, block_size, associativity, data_latency, mshr_size,
                     write_buffer_size, n_banks)
         if cache_type == "icache":
@@ -387,7 +384,6 @@ class McPatCache(McPatComponent):
             self.mcpat_patterns = ["Data Cache", "Total First Level Directory"]
         else:
             self.mcpat_patterns = ["\*\*\*\nL2", "Total Second Level Directory"]
-
 
     def attr_supported(self):
         return self.interface["attributes"]["cache_type"] in ["icache", "dcache", "l2cache"]
@@ -402,8 +398,50 @@ class McPatCache(McPatComponent):
             return False
 
 
+class McPatTournamentBP(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        self.datawidth = interface["attributes"]["datawidth"]
+        local_entries = interface["attributes"]["local_pred_entries"]
+        local_bits = interface["attributes"]["local_pred_bits"]
+        global_entries = interface["attributes"]["global_pred_entries"]
+        global_bits = interface["attributes"]["global_pred_bits"]
+        choice_entries = interface["attributes"]["choice_pred_entries"]
+        choice_bits = interface["attributes"]["choice_pred_bits"]
+
+        base = "system.core0.PBT."
+        self.properties[base + "local_predictor_size"] = "%d, %d" % (local_bits, local_bits)
+        self.properties[base + "local_predictor_entries"] = local_entries
+        self.properties[base + "global_predictor_bits"] = global_bits
+        self.properties[base + "global_predictor_entries"] = global_entries
+        self.properties[base + "chooser_predictor_bits"] = choice_bits
+        self.properties[base + "chooser_predictor_entries"] = choice_entries
+
+        action_name = self.interface["action_name"]
+        bp_access = 1
+        if action_name == "access":
+            bp_miss = 0
+        else:
+            bp_miss = 1
+        self.properties["system.core0.branch_instructions"] = bp_access
+        self.properties["system.core0.branch_mispredictions"] = bp_miss
+
+        self.name = "tournament_bp"
+        self.key = ("tournament_bp", action_name, self.tech_node, self.clockrate, local_entries, local_bits,
+                    global_entries, global_bits, choice_entries, choice_bits)
+        self.mcpat_patterns = ["Branch Predictor"]
+
+    def attr_supported(self):
+        return self.datawidth == 32
+
+    def action_supported(self):
+        return self.attr_supported() and self.interface["action_name"] in ["access", "miss"]
+
+
 components = {
     "func_unit": McPatFuncUnit,
     "xbar": McPatXBar,
-    "cache": McPatCache
+    "cache": McPatCache,
+    "tournament_bp": McPatTournamentBP
 }

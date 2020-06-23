@@ -1,5 +1,3 @@
-/homes/frwang/urop/accelergy-mcpat-plug-in/mcpat/mcpat 
-
 icache read_access
 action supported  80
 action energy     79.22562562562563 pJ
@@ -83,3 +81,16 @@ action supported  80
 action energy     183.261 pJ
 area supported    80
 area              0.0628561 mm^2
+
+tournament_bp access
+action supported  80
+action energy     18.3553 pJ
+area supported    80
+area              0.206415 mm^2
+
+tournament_bp miss
+action supported  80
+action energy     26.1471 pJ
+area supported    80
+area              0.206415 mm^2
+
