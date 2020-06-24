@@ -312,11 +312,11 @@ class McPatCache(McPatComponent):
         if action_name == "read_access":
             read_access = 1
         elif action_name == "read_miss":
-            read_access, read_misses = 1, 1
+            read_misses = 1
         elif action_name == "write_access":
             write_access = 1
         elif action_name == "write_miss":
-            write_access, write_miss = 1, 1
+            write_miss = 1
 
         config_string = "%s, %s, %s, %s, 1, %s, %s, 0" % \
             (size, block_size, associativity, n_banks, data_latency, datawidth)
@@ -419,9 +419,9 @@ class McPatTournamentBP(McPatComponent):
         self.properties[base + "chooser_predictor_entries"] = choice_entries
 
         action_name = self.interface["action_name"]
-        bp_access = 1
+        bp_access, bp_miss = 0, 0
         if action_name == "access":
-            bp_miss = 0
+            bp_access = 1
         else:
             bp_miss = 1
         self.properties["system.core0.branch_instructions"] = bp_access
@@ -470,10 +470,38 @@ class McPatCpuRegfile(McPatComponent):
         return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
 
 
+class McPatTlb(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        entries = self.interface["attributes"]["entries"]
+        action_name = self.interface["action_name"]
+        access, miss = 0, 0
+        if action_name == "access":
+            access = 1
+        elif action_name == "miss":
+            miss = 1
+
+        self.properties["system.core0.itlb.number_entries"] = entries
+        self.properties["system.core0.itlb.total_accesses"] = access
+        self.properties["system.core0.itlb.total_misses"] = miss
+
+        self.name = "tlb"
+        self.key = ("tlb", action_name, self.tech_node, self.clockrate, entries)
+        self.mcpat_patterns = ["Itlb"]
+
+    def attr_supported(self):
+        return True
+
+    def action_supported(self):
+        return self.interface["action_name"] in ["access", "miss"]
+
+
 components = {
     "func_unit": McPatFuncUnit,
     "xbar": McPatXBar,
     "cache": McPatCache,
     "tournament_bp": McPatTournamentBP,
-    "cpu_regfile": McPatCpuRegfile
+    "cpu_regfile": McPatCpuRegfile,
+    "tlb": McPatTlb
 }

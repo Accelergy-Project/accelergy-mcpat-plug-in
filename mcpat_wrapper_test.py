@@ -214,3 +214,23 @@ print("cpu_regfile fp write")
 req["action_name"] = "write"
 test(req)
 
+
+# tlb
+req = {
+    "class_name": "tlb",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":1000,
+        "datawidth":32,
+        "entries":64
+    },
+    "action_name":"access",
+    "arguments":"None"
+}
+print("tlb access")
+test(req)
+
+req["action_name"] = "miss"
+print("tlb miss")
+test(req)
+

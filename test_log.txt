@@ -6,7 +6,7 @@ area              0.654962 mm^2
 
 icache read_miss
 action supported  80
-action energy     700.5945945945946 pJ
+action energy     621.3683683683684 pJ
 area supported    80
 area              0.654962 mm^2
 
@@ -18,7 +18,7 @@ area              3.845072 mm^2
 
 dcache read_miss
 action supported  80
-action energy     1015.1661661661661 pJ
+action energy     528.4874874874874 pJ
 area supported    80
 area              3.845072 mm^2
 
@@ -30,7 +30,7 @@ area              3.845072 mm^2
 
 dcache write_miss
 action supported  80
-action energy     341.2872872872873 pJ
+action energy     1.2492092092092093 pJ
 area supported    80
 area              3.845072 mm^2
 
@@ -42,7 +42,7 @@ area              10.99543 mm^2
 
 l2cache read_miss
 action supported  80
-action energy     19.935845845845847 pJ
+action energy     0.0 pJ
 area supported    80
 area              10.99543 mm^2
 
@@ -54,7 +54,7 @@ area              10.99543 mm^2
 
 l2cache write_miss
 action supported  80
-action energy     1468.5675675675675 pJ
+action energy     1077.1531531531532 pJ
 area supported    80
 area              10.99543 mm^2
 
@@ -90,7 +90,7 @@ area              0.206415 mm^2
 
 tournament_bp miss
 action supported  80
-action energy     26.1471 pJ
+action energy     12.968 pJ
 area supported    80
 area              0.206415 mm^2
 
@@ -117,3 +117,16 @@ action supported  80
 action energy     4.81075 pJ
 area supported    80
 area              0.0614111 mm^2
+
+tlb access
+action supported  80
+action energy     4.68028 pJ
+area supported    80
+area              0.0137678 mm^2
+
+tlb miss
+action supported  80
+action energy     2.29994 pJ
+area supported    80
+area              0.0137678 mm^2
+
