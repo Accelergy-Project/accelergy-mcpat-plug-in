@@ -60,73 +60,73 @@ area              10.99543 mm^2
 
 fpu instruction
 action supported  80
-action energy     23.7299 pJ
+action energy     23.72992992992993 pJ
 area supported    80
 area              1.22925 mm^2
 
 int_alu instruction
 action supported  80
-action energy     7.909980000000001 pJ
+action energy     7.909979979979981 pJ
 area supported    80
 area              0.117718 mm^2
 
 mul_alu instruction
 action supported  80
-action energy     15.82 pJ
+action energy     15.819919919919922 pJ
 area supported    80
 area              0.117718 mm^2
 
 xbar access
 action supported  80
-action energy     183.261 pJ
+action energy     183.26126126126127 pJ
 area supported    80
 area              0.0628561 mm^2
 
 tournament_bp access
 action supported  80
-action energy     18.3553 pJ
+action energy     18.318918918918918 pJ
 area supported    80
-area              0.206415 mm^2
+area              0.205346 mm^2
 
 tournament_bp miss
 action supported  80
-action energy     12.968 pJ
+action energy     12.956656656656657 pJ
 area supported    80
-area              0.206415 mm^2
+area              0.205346 mm^2
 
 cpu_regfile int read
 action supported  80
-action energy     5.52631 pJ
+action energy     5.5263063063063065 pJ
 area supported    80
 area              0.154626 mm^2
 
 cpu_regfile int write
 action supported  80
-action energy     7.29219 pJ
+action energy     7.292182182182183 pJ
 area supported    80
 area              0.154626 mm^2
 
 cpu_regfile fp read
 action supported  80
-action energy     3.72949 pJ
+action energy     3.7294894894894894 pJ
 area supported    80
 area              0.0614111 mm^2
 
 cpu_regfile fp write
 action supported  80
-action energy     4.81075 pJ
+action energy     4.810750750750751 pJ
 area supported    80
 area              0.0614111 mm^2
 
 tlb access
 action supported  80
-action energy     4.68028 pJ
+action energy     4.6802802802802805 pJ
 area supported    80
 area              0.0137678 mm^2
 
 tlb miss
 action supported  80
-action energy     2.29994 pJ
+action energy     2.29993993993994 pJ
 area supported    80
 area              0.0137678 mm^2
 

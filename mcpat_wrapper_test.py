@@ -124,7 +124,7 @@ req = {
     "class_name": "func_unit",
     "attributes":{
         "technology":"45nm",
-        "clockrate":1000,
+        "clockrate":999,
         "datawidth":32,
         "type":"fpu"
     },
@@ -148,7 +148,7 @@ req = {
     "class_name": "xbar",
     "attributes":{
         "technology":"45nm",
-        "clockrate":1000,
+        "clockrate":999,
         "datawidth":32,
         "horizontal_nodes":1,
         "vertical_nodes": 1,
@@ -167,13 +167,13 @@ req = {
     "class_name": "tournament_bp",
     "attributes":{
         "technology":"45nm",
-        "clockrate":1000,
+        "clockrate":999,
         "datawidth":32,
         "local_pred_entries": 2048,
         "local_pred_bits": 2,
         "global_pred_entries": 8192,
         "global_pred_bits": 2,
-        "choice_pred_entries": 8196,
+        "choice_pred_entries": 8192,
         "choice_pred_bits": 2
     },
     "action_name":"access",
@@ -191,7 +191,7 @@ req = {
     "class_name": "cpu_regfile",
     "attributes":{
         "technology":"45nm",
-        "clockrate":1000,
+        "clockrate":999,
         "datawidth":32,
         "type":"int"
     },
@@ -220,7 +220,7 @@ req = {
     "class_name": "tlb",
     "attributes":{
         "technology":"45nm",
-        "clockrate":1000,
+        "clockrate":999,
         "datawidth":32,
         "entries":64
     },

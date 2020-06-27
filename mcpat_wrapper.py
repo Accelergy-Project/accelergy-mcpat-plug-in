@@ -1,6 +1,7 @@
 import os
 import re
 import copy
+import json
 import subprocess
 import xml.etree.ElementTree as ET
 
@@ -22,8 +23,10 @@ class McPatWrapper:
     def __init__(self, clean_output_files=True):
         self.estimator_name = "McPat"
         self.exec_path = search_for_mcpat_exec_path()
-        self.cache = {}  # enable data reuse
         self.clean_output_files = clean_output_files
+        self.cache = {}
+        self.cache_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".cache")
+        self.load_cache()  # enable data caching across invocations
 
     def primitive_action_supported(self, interface):
         """
@@ -70,7 +73,7 @@ class McPatWrapper:
             return self.cache[key][0]
         else:
             energy, area = self.query_mcpat(component)
-            self.cache[key] = (energy, area)
+            self.write_cache(key, energy, area)
             return energy
 
     def primitive_area_supported(self, interface):
@@ -117,8 +120,21 @@ class McPatWrapper:
             return self.cache[key][1]
         else:
             energy, area = self.query_mcpat(component)
-            self.cache[key] = (energy, area)
+            self.write_cache(key, energy, area)
             return area
+
+    def load_cache(self):
+        if os.path.exists(self.cache_file):
+            with open(self.cache_file, "r") as file:
+                for line in file.readlines():
+                    entry = json.loads(line)
+                    self.cache[tuple(entry[0])] = (entry[1], entry[2])
+
+    def write_cache(self, key, energy, area):
+        self.cache[key] = (energy, area)
+        with open(self.cache_file, "a") as file:
+            json.dump([key, energy, area], file)
+            file.write("\n")
 
     def query_mcpat(self, component):
         dir_path = os.path.dirname(os.path.realpath(__file__))
