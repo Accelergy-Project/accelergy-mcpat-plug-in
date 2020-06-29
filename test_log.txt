@@ -166,3 +166,15 @@ action energy     11.475175175175176 pJ
 area supported    80
 area              0.303539 mm^2
 
+load_store_queue load access
+action supported  80
+action energy     11.224424424424424 pJ
+area supported    80
+area              0.0145349 mm^2
+
+load_store_queue store access
+action supported  80
+action energy     22.44894894894895 pJ
+area supported    80
+area              0.0145349 mm^2
+

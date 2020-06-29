@@ -597,6 +597,35 @@ class McPatReorderBuffer(McPatComponent):
         return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
 
 
+class McPatLoadStoreQueue(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        self.datawidth = interface["attributes"]["datawidth"]
+        entries = interface["attributes"]["entries"]
+        queue_type = self.interface["attributes"]["type"]
+
+        if queue_type == "load":
+            self.properties["system.core0.load_buffer_size"] = entries
+            self.properties["system.core0.load_instructions"] = 1
+            self.properties["system.core0.store_instructions"] = 0
+            self.mcpat_patterns = ["LoadQ"]
+        elif queue_type == "store":
+            self.properties["system.core0.store_buffer_size"] = entries
+            self.properties["system.core0.store_instructions"] = 1
+            self.properties["system.core0.load_instructions"] = 0
+            self.mcpat_patterns = ["StoreQ"]
+
+        self.name = "load_store_queue"
+        self.key = ("load_store_queue", self.tech_node, self.clockrate, entries, queue_type)
+
+    def attr_supported(self):
+        return self.datawidth == 32 and self.interface["attributes"]["type"] in ["load", "store"]
+
+    def action_supported(self):
+        return self.attr_supported() and self.interface["action_name"] == "access"
+
+
 components = {
     "func_unit": McPatFuncUnit,
     "xbar": McPatXBar,
@@ -606,5 +635,6 @@ components = {
     "cpu_regfile": McPatCpuRegfile,
     "tlb": McPatTlb,
     "renaming_unit": McPatRenamingUnit,
-    "reorder_buffer": McPatReorderBuffer
+    "reorder_buffer": McPatReorderBuffer,
+    "load_store_queue": McPatLoadStoreQueue
 }

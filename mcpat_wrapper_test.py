@@ -297,3 +297,23 @@ req["action_name"] = "write"
 print("reorder_buffer write")
 test(req)
 
+
+# load_store_queue
+req = {
+    "class_name": "load_store_queue",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":999,
+        "datawidth":32,
+        "entries": 32,
+        "type": "load"
+    },
+    "action_name":"access",
+    "arguments":"None"
+}
+print("load_store_queue load access")
+test(req)
+
+req["attributes"]["type"] = "store"
+print("load_store_queue store access")
+test(req)
