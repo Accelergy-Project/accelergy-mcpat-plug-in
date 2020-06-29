@@ -94,6 +94,18 @@ action energy     12.956656656656657 pJ
 area supported    80
 area              0.205346 mm^2
 
+btb read
+action supported  80
+action energy     7.323023023023023 pJ
+area supported    80
+area              0.156151 mm^2
+
+btb write
+action supported  80
+action energy     11.463863863863864 pJ
+area supported    80
+area              0.156151 mm^2
+
 cpu_regfile int read
 action supported  80
 action energy     5.5263063063063065 pJ
@@ -129,4 +141,28 @@ action supported  80
 action energy     2.29993993993994 pJ
 area supported    80
 area              0.0137678 mm^2
+
+renaming_unit read
+action supported  80
+action energy     1.704134134134134 pJ
+area supported    80
+area              0.00613844 mm^2
+
+renaming_unit write
+action supported  80
+action energy     0.7034894894894895 pJ
+area supported    80
+area              0.00613844 mm^2
+
+reorder_buffer read
+action supported  80
+action energy     9.18021021021021 pJ
+area supported    80
+area              0.303539 mm^2
+
+reorder_buffer write
+action supported  80
+action energy     11.475175175175176 pJ
+area supported    80
+area              0.303539 mm^2
 

@@ -455,6 +455,38 @@ class McPatTournamentBP(McPatComponent):
         return self.attr_supported() and self.interface["action_name"] in ["access", "miss"]
 
 
+class McPatBTB(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        self.datawidth = interface["attributes"]["datawidth"]
+        entries = self.interface["attributes"]["entries"]
+        block_width = self.interface["attributes"]["block_width"]
+        associativity = self.interface["attributes"]["associativity"]
+        banks = self.interface["attributes"]["banks"]
+        action_name = self.interface["action_name"]
+        if action_name == "read":
+            read, write = 1, 0
+        elif action_name == "write":
+            read, write = 0, 1
+
+        config_string = "%s, %s, %s, %s, 1, 1" % (entries, block_width, associativity, banks)
+
+        self.properties["system.core0.BTB.BTB_config"] = config_string
+        self.properties["system.core0.BTB.read_accesses"] = read
+        self.properties["system.core0.BTB.write_accesses"] = write
+        self.mcpat_patterns = ["Branch Target Buffer"]
+
+        self.name = "btb"
+        self.key = ("btb", action_name, self.tech_node, self.clockrate, entries, block_width, associativity, banks)
+
+    def attr_supported(self):
+        return self.datawidth == 32
+
+    def action_supported(self):
+        return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
+
+
 class McPatCpuRegfile(McPatComponent):
 
     def __init__(self, interface):
@@ -513,11 +545,66 @@ class McPatTlb(McPatComponent):
         return self.interface["action_name"] in ["access", "miss"]
 
 
+class McPatRenamingUnit(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        self.datawidth = interface["attributes"]["datawidth"]
+        action_name = self.interface["action_name"]
+        if action_name == "read":
+            read, write = 1, 0
+        elif action_name == "write":
+            read, write = 0, 1
+
+        self.properties["system.core0.rename_reads"] = read
+        self.properties["system.core0.rename_writes"] = write
+        self.mcpat_patterns = ["Int Front End RAT"]
+
+        self.name = "renaming_unit"
+        self.key = ("renaming_unit", action_name, self.tech_node, self.clockrate)
+
+    def attr_supported(self):
+        return self.datawidth == 32
+
+    def action_supported(self):
+        return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
+
+
+class McPatReorderBuffer(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        self.datawidth = interface["attributes"]["datawidth"]
+        entries = self.interface["attributes"]["entries"]
+        action_name = self.interface["action_name"]
+        if action_name == "read":
+            read, write = 1, 0
+        elif action_name == "write":
+            read, write = 0, 1
+
+        self.properties["system.core0.ROB_size"] = entries
+        self.properties["system.core0.ROB_reads"] = read
+        self.properties["system.core0.ROB_writes"] = write
+        self.mcpat_patterns = ["ROB"]
+
+        self.name = "reorder_buffer"
+        self.key = ("reorder_buffer", action_name, self.tech_node, self.clockrate, entries)
+
+    def attr_supported(self):
+        return self.datawidth == 32
+
+    def action_supported(self):
+        return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
+
+
 components = {
     "func_unit": McPatFuncUnit,
     "xbar": McPatXBar,
     "cache": McPatCache,
     "tournament_bp": McPatTournamentBP,
+    "btb": McPatBTB,
     "cpu_regfile": McPatCpuRegfile,
-    "tlb": McPatTlb
+    "tlb": McPatTlb,
+    "renaming_unit": McPatRenamingUnit,
+    "reorder_buffer": McPatReorderBuffer
 }

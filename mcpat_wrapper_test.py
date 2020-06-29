@@ -186,6 +186,30 @@ req["action_name"] = "miss"
 print("tournament_bp miss")
 test(req)
 
+
+# btb
+req = {
+    "class_name": "btb",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":999,
+        "datawidth":32,
+        "entries": 4096,
+        "block_width": 4,
+        "associativity": 2,
+        "banks": 2,
+    },
+    "action_name":"read",
+    "arguments":"None"
+}
+print("btb read")
+test(req)
+
+req["action_name"] = "write"
+print("btb write")
+test(req)
+
+
 # cpu_regfile
 req = {
     "class_name": "cpu_regfile",
@@ -232,5 +256,44 @@ test(req)
 
 req["action_name"] = "miss"
 print("tlb miss")
+test(req)
+
+
+# renaming_unit
+req = {
+    "class_name": "renaming_unit",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":999,
+        "datawidth":32,
+    },
+    "action_name":"read",
+    "arguments":"None"
+}
+print("renaming_unit read")
+test(req)
+
+req["action_name"] = "write"
+print("renaming_unit write")
+test(req)
+
+
+# reorder_buffer
+req = {
+    "class_name": "reorder_buffer",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":999,
+        "datawidth":32,
+        "entries": 192,
+    },
+    "action_name":"read",
+    "arguments":"None"
+}
+print("reorder_buffer read")
+test(req)
+
+req["action_name"] = "write"
+print("reorder_buffer write")
 test(req)
 
