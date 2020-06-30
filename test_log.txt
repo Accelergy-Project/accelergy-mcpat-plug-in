@@ -1,62 +1,62 @@
-icache read_access
+cache icache read_access
 action supported  80
 action energy     84.35065065065065 pJ
 area supported    80
 area              1.36736 mm^2
 
-icache read_miss
+cache icache read_miss
 action supported  80
 action energy     664.4704704704704 pJ
 area supported    80
 area              1.36736 mm^2
 
-dcache read_access
+cache dcache read_access
 action supported  80
-action energy     925.3903903903904 pJ
+action energy     105.15215215215215 pJ
 area supported    80
-area              8.359770000000001 mm^2
+area              1.61599 mm^2
 
-dcache read_miss
+cache dcache read_miss
 action supported  80
 action energy     566.8448448448448 pJ
 area supported    80
-area              8.359770000000001 mm^2
+area              1.61599 mm^2
 
-dcache write_access
+cache dcache write_access
 action supported  80
-action energy     591.8658658658659 pJ
+action energy     132.24024024024024 pJ
 area supported    80
-area              8.359770000000001 mm^2
+area              1.61599 mm^2
 
-dcache write_miss
+cache dcache write_miss
 action supported  80
 action energy     1.4137237237237237 pJ
 area supported    80
-area              8.359770000000001 mm^2
+area              1.61599 mm^2
 
-l2cache read_access
+cache l2cache read_access
 action supported  80
-action energy     488.5445445445445 pJ
+action energy     257.3453453453453 pJ
 area supported    80
-area              10.53302 mm^2
+area              3.32135 mm^2
 
-l2cache read_miss
+cache l2cache read_miss
 action supported  80
 action energy     0.0 pJ
 area supported    80
-area              10.53302 mm^2
+area              3.32135 mm^2
 
-l2cache write_access
+cache l2cache write_access
 action supported  80
-action energy     657.2802802802803 pJ
+action energy     344.25525525525524 pJ
 area supported    80
-area              10.53302 mm^2
+area              3.32135 mm^2
 
-l2cache write_miss
+cache l2cache write_miss
 action supported  80
-action energy     1190.0830830830832 pJ
+action energy     962.3713713713714 pJ
 area supported    80
-area              10.53302 mm^2
+area              3.32135 mm^2
 
 fpu instruction
 action supported  80

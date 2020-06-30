@@ -11,7 +11,7 @@ def test(interface):
     print("area             ", wrapper.estimate_area(interface), "mm^2\n")
 
 
-# icache
+# cache icache
 req = {
    "class_name":"cache",
    "attributes":{
@@ -34,15 +34,15 @@ req = {
    "action_name":"read_access",
    "arguments":"None"
 }
-print("icache read_access")
+print("cache icache read_access")
 test(req)
 
 req["action_name"] = "read_miss"
-print("icache read_miss")
+print("cache icache read_miss")
 test(req)
 
 
-# dcache
+# cache dcache
 req = {
    "class_name":"cache",
    "attributes":{
@@ -65,23 +65,23 @@ req = {
    "action_name":"read_access",
    "arguments":"None"
 }
-print("dcache read_access")
+print("cache dcache read_access")
 test(req)
 
 req["action_name"] = "read_miss"
-print("dcache read_miss")
+print("cache dcache read_miss")
 test(req)
 
 req["action_name"] = "write_access"
-print("dcache write_access")
+print("cache dcache write_access")
 test(req)
 
 req["action_name"] = "write_miss"
-print("dcache write_miss")
+print("cache dcache write_miss")
 test(req)
 
 
-# l2cache
+# cache l2cache
 req = {
     "class_name":"cache",
    "attributes":{
@@ -104,20 +104,21 @@ req = {
    "action_name":"read_access",
    "arguments":"None"
 }
-print("l2cache read_access")
+print("cache l2cache read_access")
 test(req)
 
 req["action_name"] = "read_miss"
-print("l2cache read_miss")
+print("cache l2cache read_miss")
 test(req)
 
 req["action_name"] = "write_access"
-print("l2cache write_access")
+print("cache l2cache write_access")
 test(req)
 
 req["action_name"] = "write_miss"
-print("l2cache write_miss")
+print("cache l2cache write_miss")
 test(req)
+
 
 # func units
 req = {

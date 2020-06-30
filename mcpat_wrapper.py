@@ -317,8 +317,9 @@ class McPatCache(McPatComponent):
         mshr_size = interface["attributes"]["mshr_size"]                  # maximum outstanding requests
         write_buffer_size = interface["attributes"]["write_buffer_size"]  # write buffer size
         n_banks = interface["attributes"]["n_banks"]                      # number of cache banks
-        read_access, read_misses, write_access, write_miss = 0, 0, 0, 0
+
         action_name = interface["action_name"]
+        read_access, read_misses, write_access, write_miss = 0, 0, 0, 0
         if action_name == "read_access":
             read_access = 1
         elif action_name == "read_miss":
@@ -328,72 +329,39 @@ class McPatCache(McPatComponent):
         elif action_name == "write_miss":
             write_miss = 1
 
-        config_string = "%s, %s, %s, %s, 1, %s, %s, 0" % \
-            (size, block_size, associativity, n_banks, data_latency, datawidth)
-        buffer_string = "%s, 4, 4, %s" % (mshr_size, write_buffer_size)
-
         cache_type = interface["attributes"]["cache_type"]
         if cache_type == "icache":
             mcpat_path = "system.core0.icache"
             mcpat_config_path = "system.core0.icache.icache_config"
-            self.properties[mcpat_config_path] = config_string
-            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
-            self.properties["%s.read_accesses" % mcpat_path] = read_access
-            self.properties["%s.read_misses" % mcpat_path] = read_misses
-            self.properties["%s.conflicts" % mcpat_path] = 0
+            self.mcpat_patterns = ["Instruction Cache"]
         elif cache_type == "dcache":
             mcpat_path = "system.core0.dcache"
             mcpat_config_path = "system.core0.dcache.dcache_config"
-            self.properties[mcpat_config_path] = config_string
-            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
-            self.properties["%s.read_accesses" % mcpat_path] = read_access
-            self.properties["%s.read_misses" % mcpat_path] = read_misses
             self.properties["%s.write_accesses" % mcpat_path] = write_access
             self.properties["%s.write_misses" % mcpat_path] = write_miss
-            self.properties["%s.conflicts" % mcpat_path] = 0
-            mcpat_path = "system.L1Directory0"
-            mcpat_config_path = "system.L1Directory0.Dir_config"
-            self.properties[mcpat_config_path] = config_string
-            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
-            self.properties["%s.read_accesses" % mcpat_path] = read_access
-            self.properties["%s.read_misses" % mcpat_path] = read_misses
-            self.properties["%s.write_accesses" % mcpat_path] = write_access
-            self.properties["%s.write_misses" % mcpat_path] = write_miss
-            self.properties["%s.conflicts" % mcpat_path] = 0
-            self.properties["%s.clockrate" % mcpat_path] = self.clockrate
-            # self.properties["%s.duty_cycle" % mcpat_path] = 1
+            self.mcpat_patterns = ["Data Cache"]
         else:
             mcpat_path = "system.L20"
             mcpat_config_path = "system.L20.L2_config"
-            self.properties[mcpat_config_path] = config_string
-            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
-            self.properties["%s.read_accesses" % mcpat_path] = read_access
-            self.properties["%s.read_misses" % mcpat_path] = read_misses
             self.properties["%s.write_accesses" % mcpat_path] = write_access
             self.properties["%s.write_misses" % mcpat_path] = write_miss
-            self.properties["%s.conflicts" % mcpat_path] = 0
             self.properties["%s.clockrate" % mcpat_path] = self.clockrate
-            mcpat_path = "system.L2Directory0"
-            mcpat_config_path = "system.L2Directory0.Dir_config"
-            self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
-            self.properties["%s.read_accesses" % mcpat_path] = read_access
-            self.properties["%s.read_misses" % mcpat_path] = read_misses
-            self.properties["%s.write_accesses" % mcpat_path] = write_access
-            self.properties["%s.write_misses" % mcpat_path] = write_miss
-            self.properties["%s.conflicts" % mcpat_path] = 0
-            self.properties["%s.clockrate" % mcpat_path] = self.clockrate
-            # self.properties["%s.duty_cycle" % mcpat_path] = 1
+            self.mcpat_patterns = ["\*\*\*\nL2"]
 
-        self.name = cache_type
-        self.key = (cache_type, action_name, self.tech_node, self.clockrate,
+        config_string = "%s, %s, %s, %s, 1, %s, %s, 0" % \
+                        (size, block_size, associativity, n_banks, data_latency, datawidth)
+        buffer_string = "%s, 4, 4, %s" % (mshr_size, write_buffer_size)
+
+        self.properties[mcpat_config_path] = config_string
+        self.properties["%s.buffer_sizes" % mcpat_path] = buffer_string
+        self.properties["%s.read_accesses" % mcpat_path] = read_access
+        self.properties["%s.read_misses" % mcpat_path] = read_misses
+        self.properties["%s.conflicts" % mcpat_path] = 0
+
+        self.name = "cache"
+        self.key = ("cache", cache_type, action_name, self.tech_node, self.clockrate,
                     datawidth, size, block_size, associativity, data_latency, mshr_size,
                     write_buffer_size, n_banks)
-        if cache_type == "icache":
-            self.mcpat_patterns = ["Instruction Cache"]
-        elif cache_type == "dcache":
-            self.mcpat_patterns = ["Data Cache", "Total First Level Directory"]
-        else:
-            self.mcpat_patterns = ["\*\*\*\nL2", "Total Second Level Directory"]
 
     def attr_supported(self):
         return self.interface["attributes"]["cache_type"] in ["icache", "dcache", "l2cache"]
