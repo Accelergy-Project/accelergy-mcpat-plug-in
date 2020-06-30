@@ -186,6 +186,10 @@ req["action_name"] = "miss"
 print("tournament_bp miss")
 test(req)
 
+req["action_name"] = "idle"
+print("tournament_bp idle")
+test(req)
+
 
 # btb
 req = {
@@ -229,6 +233,10 @@ print("cpu_regfile int write")
 req["action_name"] = "write"
 test(req)
 
+print("cpu_regfile int idle")
+req["action_name"] = "idle"
+test(req)
+
 print("cpu_regfile fp read")
 req["attributes"]["type"] = "fp"
 req["action_name"] = "read"
@@ -236,6 +244,10 @@ test(req)
 
 print("cpu_regfile fp write")
 req["action_name"] = "write"
+test(req)
+
+print("cpu_regfile fp idle")
+req["action_name"] = "idle"
 test(req)
 
 
@@ -275,6 +287,10 @@ test(req)
 
 req["action_name"] = "write"
 print("renaming_unit write")
+test(req)
+
+req["action_name"] = "idle"
+print("renaming_unit idle")
 test(req)
 
 

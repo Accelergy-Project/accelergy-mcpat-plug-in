@@ -324,7 +324,7 @@ class McPatCache(McPatComponent):
         write_buffer_size = interface["attributes"]["write_buffer_size"]  # write buffer size
         n_banks = interface["attributes"]["n_banks"]                      # number of cache banks
         read_access, read_misses, write_access, write_miss = 0, 0, 0, 0
-        action_name = self.interface["action_name"]
+        action_name = interface["action_name"]
         if action_name == "read_access":
             read_access = 1
         elif action_name == "read_miss":
@@ -338,7 +338,7 @@ class McPatCache(McPatComponent):
             (size, block_size, associativity, n_banks, data_latency, datawidth)
         buffer_string = "%s, 4, 4, %s" % (mshr_size, write_buffer_size)
 
-        cache_type = self.interface["attributes"]["cache_type"]
+        cache_type = interface["attributes"]["cache_type"]
         if cache_type == "icache":
             mcpat_path = "system.core0.icache"
             mcpat_config_path = "system.core0.icache.icache_config"
@@ -434,12 +434,14 @@ class McPatTournamentBP(McPatComponent):
         self.properties[base + "chooser_predictor_bits"] = choice_bits
         self.properties[base + "chooser_predictor_entries"] = choice_entries
 
-        action_name = self.interface["action_name"]
-        bp_access, bp_miss = 0, 0
+        action_name = interface["action_name"]
         if action_name == "access":
-            bp_access = 1
+            bp_access, bp_miss = 1, 0
+        elif action_name == "miss":
+            bp_access, bp_miss = 0, 1
         else:
-            bp_miss = 1
+            bp_access, bp_miss = 0, 0
+
         self.properties["system.core0.branch_instructions"] = bp_access
         self.properties["system.core0.branch_mispredictions"] = bp_miss
 
@@ -452,7 +454,7 @@ class McPatTournamentBP(McPatComponent):
         return self.datawidth == 32
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in ["access", "miss"]
+        return self.attr_supported() and self.interface["action_name"] in ["access", "miss", "idle"]
 
 
 class McPatBTB(McPatComponent):
@@ -460,11 +462,11 @@ class McPatBTB(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         self.datawidth = interface["attributes"]["datawidth"]
-        entries = self.interface["attributes"]["entries"]
-        block_width = self.interface["attributes"]["block_width"]
-        associativity = self.interface["attributes"]["associativity"]
-        banks = self.interface["attributes"]["banks"]
-        action_name = self.interface["action_name"]
+        entries = interface["attributes"]["entries"]
+        block_width = interface["attributes"]["block_width"]
+        associativity = interface["attributes"]["associativity"]
+        banks = interface["attributes"]["banks"]
+        action_name = interface["action_name"]
         if action_name == "read":
             read, write = 1, 0
         elif action_name == "write":
@@ -492,13 +494,15 @@ class McPatCpuRegfile(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         self.datawidth = interface["attributes"]["datawidth"]
-        action_name = self.interface["action_name"]
+        action_name = interface["action_name"]
         if action_name == "read":
             read, write = 1, 0
         elif action_name == "write":
             read, write = 0, 1
+        else:
+            read, write = 0, 0
 
-        regfile_type = self.interface["attributes"]["type"]
+        regfile_type = interface["attributes"]["type"]
         if regfile_type == "int":
             self.properties["system.core0.int_regfile_reads"] = read
             self.properties["system.core0.int_regfile_writes"] = write
@@ -515,15 +519,15 @@ class McPatCpuRegfile(McPatComponent):
         return self.datawidth == 32 and self.interface["attributes"]["type"] in ["int", "fp"]
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
+        return self.attr_supported() and self.interface["action_name"] in ["read", "write", "idle"]
 
 
 class McPatTlb(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        entries = self.interface["attributes"]["entries"]
-        action_name = self.interface["action_name"]
+        entries = interface["attributes"]["entries"]
+        action_name = interface["action_name"]
         access, miss = 0, 0
         if action_name == "access":
             access = 1
@@ -550,11 +554,13 @@ class McPatRenamingUnit(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         self.datawidth = interface["attributes"]["datawidth"]
-        action_name = self.interface["action_name"]
+        action_name = interface["action_name"]
         if action_name == "read":
             read, write = 1, 0
         elif action_name == "write":
             read, write = 0, 1
+        else:
+            read, write = 0, 0
 
         self.properties["system.core0.rename_reads"] = read
         self.properties["system.core0.rename_writes"] = write
@@ -567,7 +573,7 @@ class McPatRenamingUnit(McPatComponent):
         return self.datawidth == 32
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
+        return self.attr_supported() and self.interface["action_name"] in ["read", "write", "idle"]
 
 
 class McPatReorderBuffer(McPatComponent):
@@ -575,8 +581,8 @@ class McPatReorderBuffer(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         self.datawidth = interface["attributes"]["datawidth"]
-        entries = self.interface["attributes"]["entries"]
-        action_name = self.interface["action_name"]
+        entries = interface["attributes"]["entries"]
+        action_name = interface["action_name"]
         if action_name == "read":
             read, write = 1, 0
         elif action_name == "write":
@@ -603,7 +609,7 @@ class McPatLoadStoreQueue(McPatComponent):
         super().__init__(interface)
         self.datawidth = interface["attributes"]["datawidth"]
         entries = interface["attributes"]["entries"]
-        queue_type = self.interface["attributes"]["type"]
+        queue_type = interface["attributes"]["type"]
 
         if queue_type == "load":
             self.properties["system.core0.load_buffer_size"] = entries
