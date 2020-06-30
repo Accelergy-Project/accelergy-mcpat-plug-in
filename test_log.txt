@@ -1,204 +1,222 @@
 icache read_access
 action supported  80
-action energy     79.22562562562563 pJ
+action energy     84.35065065065065 pJ
 area supported    80
-area              0.654962 mm^2
+area              1.36736 mm^2
 
 icache read_miss
 action supported  80
-action energy     621.3683683683684 pJ
+action energy     664.4704704704704 pJ
 area supported    80
-area              0.654962 mm^2
+area              1.36736 mm^2
 
 dcache read_access
 action supported  80
-action energy     486.67837837837834 pJ
+action energy     925.3903903903904 pJ
 area supported    80
-area              3.845072 mm^2
+area              8.359770000000001 mm^2
 
 dcache read_miss
 action supported  80
-action energy     528.4874874874874 pJ
+action energy     566.8448448448448 pJ
 area supported    80
-area              3.845072 mm^2
+area              8.359770000000001 mm^2
 
 dcache write_access
 action supported  80
-action energy     340.03803803803805 pJ
+action energy     591.8658658658659 pJ
 area supported    80
-area              3.845072 mm^2
+area              8.359770000000001 mm^2
 
 dcache write_miss
 action supported  80
-action energy     1.2492092092092093 pJ
+action energy     1.4137237237237237 pJ
 area supported    80
-area              3.845072 mm^2
+area              8.359770000000001 mm^2
 
 l2cache read_access
 action supported  80
-action energy     336.8738738738739 pJ
+action energy     488.5445445445445 pJ
 area supported    80
-area              10.99543 mm^2
+area              10.53302 mm^2
 
 l2cache read_miss
 action supported  80
 action energy     0.0 pJ
 area supported    80
-area              10.99543 mm^2
+area              10.53302 mm^2
 
 l2cache write_access
 action supported  80
-action energy     391.41141141141145 pJ
+action energy     657.2802802802803 pJ
 area supported    80
-area              10.99543 mm^2
+area              10.53302 mm^2
 
 l2cache write_miss
 action supported  80
-action energy     1077.1531531531532 pJ
+action energy     1190.0830830830832 pJ
 area supported    80
-area              10.99543 mm^2
+area              10.53302 mm^2
 
 fpu instruction
 action supported  80
-action energy     23.72992992992993 pJ
+action energy     245.93893893893895 pJ
 area supported    80
-area              1.22925 mm^2
+area              2.32925 mm^2
+
+fpu idle
+action supported  80
+action energy     103.55955955955956 pJ
+area supported    80
+area              2.32925 mm^2
 
 int_alu instruction
 action supported  80
-action energy     7.909979979979981 pJ
+action energy     81.97957957957958 pJ
 area supported    80
-area              0.117718 mm^2
+area              0.235435 mm^2
+
+int_alu idle
+action supported  80
+action energy     34.51971971971972 pJ
+area supported    80
+area              0.235435 mm^2
 
 mul_alu instruction
 action supported  80
-action energy     15.819919919919922 pJ
+action energy     163.95895895895896 pJ
 area supported    80
-area              0.117718 mm^2
+area              0.235435 mm^2
+
+mul_alu idle
+action supported  80
+action energy     69.03943943943943 pJ
+area supported    80
+area              0.235435 mm^2
 
 xbar access
 action supported  80
-action energy     183.26126126126127 pJ
+action energy     210.7017017017017 pJ
 area supported    80
-area              0.0628561 mm^2
+area              0.127358 mm^2
 
 tournament_bp access
 action supported  80
-action energy     18.318918918918918 pJ
+action energy     21.182282282282284 pJ
 area supported    80
-area              0.205346 mm^2
+area              0.257514 mm^2
 
 tournament_bp miss
 action supported  80
-action energy     12.956656656656657 pJ
+action energy     15.574474474474474 pJ
 area supported    80
-area              0.205346 mm^2
+area              0.257514 mm^2
 
 tournament_bp idle
 action supported  80
-action energy     5.176216216216217 pJ
+action energy     5.339129129129129 pJ
 area supported    80
-area              0.205346 mm^2
+area              0.257514 mm^2
 
 btb read
 action supported  80
-action energy     7.323023023023023 pJ
+action energy     9.95995995995996 pJ
 area supported    80
-area              0.156151 mm^2
+area              0.324044 mm^2
 
 btb write
 action supported  80
-action energy     11.463863863863864 pJ
+action energy     14.674974974974974 pJ
 area supported    80
-area              0.156151 mm^2
+area              0.324044 mm^2
 
 cpu_regfile int read
 action supported  80
-action energy     5.5263063063063065 pJ
+action energy     5.776996996996997 pJ
 area supported    80
-area              0.154626 mm^2
+area              0.29277 mm^2
 
 cpu_regfile int write
 action supported  80
-action energy     7.292182182182183 pJ
+action energy     7.542882882882883 pJ
 area supported    80
-area              0.154626 mm^2
+area              0.29277 mm^2
 
 cpu_regfile int idle
 action supported  80
-action energy     2.7631531531531532 pJ
+action energy     2.8884984984984987 pJ
 area supported    80
-area              0.154626 mm^2
+area              0.29277 mm^2
 
 cpu_regfile fp read
 action supported  80
-action energy     3.7294894894894894 pJ
+action energy     3.8868268268268267 pJ
 area supported    80
-area              0.0614111 mm^2
+area              0.10891 mm^2
 
 cpu_regfile fp write
 action supported  80
-action energy     4.810750750750751 pJ
+action energy     4.968088088088088 pJ
 area supported    80
-area              0.0614111 mm^2
+area              0.10891 mm^2
 
 cpu_regfile fp idle
 action supported  80
-action energy     1.8647447447447447 pJ
+action energy     1.9434134134134133 pJ
 area supported    80
-area              0.0614111 mm^2
+area              0.10891 mm^2
 
 tlb access
 action supported  80
-action energy     4.6802802802802805 pJ
+action energy     4.732392392392392 pJ
 area supported    80
-area              0.0137678 mm^2
+area              0.0202735 mm^2
 
 tlb miss
 action supported  80
-action energy     2.29993993993994 pJ
+action energy     2.411081081081081 pJ
 area supported    80
-area              0.0137678 mm^2
+area              0.0202735 mm^2
 
 renaming_unit read
 action supported  80
-action energy     1.704134134134134 pJ
+action energy     1.717017017017017 pJ
 area supported    80
-area              0.00613844 mm^2
+area              0.0121582 mm^2
 
 renaming_unit write
 action supported  80
-action energy     0.7034894894894895 pJ
+action energy     0.7163723723723724 pJ
 area supported    80
-area              0.00613844 mm^2
+area              0.0121582 mm^2
 
 renaming_unit idle
 action supported  80
-action energy     0.2491201201201201 pJ
+action energy     0.25556156156156157 pJ
 area supported    80
-area              0.00613844 mm^2
+area              0.0121582 mm^2
 
 reorder_buffer read
 action supported  80
-action energy     9.18021021021021 pJ
+action energy     9.647227227227226 pJ
 area supported    80
-area              0.303539 mm^2
+area              0.467472 mm^2
 
 reorder_buffer write
 action supported  80
-action energy     11.475175175175176 pJ
+action energy     11.942142142142142 pJ
 area supported    80
-area              0.303539 mm^2
+area              0.467472 mm^2
 
 load_store_queue load access
 action supported  80
-action energy     11.224424424424424 pJ
+action energy     11.743443443443443 pJ
 area supported    80
-area              0.0145349 mm^2
+area              0.0268025 mm^2
 
 load_store_queue store access
 action supported  80
-action energy     22.44894894894895 pJ
+action energy     23.486886886886886 pJ
 area supported    80
-area              0.0145349 mm^2
+area              0.0268025 mm^2
 

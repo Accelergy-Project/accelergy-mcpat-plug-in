@@ -223,6 +223,7 @@ class McPatComponent:
         "system.number_of_L1Directories": 1,
         "system.number_of_L2Directories": 1,
         "system.number_of_L2s": 1,
+        "system.Embedded": 0,
     }
 
     def __init__(self, interface):
@@ -252,33 +253,26 @@ class McPatFuncUnit(McPatComponent):
         super().__init__(interface)
         self.datawidth = interface["attributes"]["datawidth"]
         self.type = interface["attributes"]["type"]
+        action_name = interface["action_name"]
+        action_count = 1 if action_name == "instruction" else 0
 
-        fpu_access, int_alu_access, mul_alu_access = 0, 0, 0
+        self.name = "func_unit"
+        self.key = ("func_unit", self.type, action_name, self.tech_node, self.clockrate)
         if self.type == "fpu":
-            fpu_access = 1
-        elif self.type == "int_alu":
-            int_alu_access = 1
-        else:
-            mul_alu_access = 1
-
-        self.properties["system.core0.fpu_accesses"] = fpu_access
-        self.properties["system.core0.ialu_accesses"] = int_alu_access
-        self.properties["system.core0.mul_accesses"] = mul_alu_access
-
-        self.name = self.type
-        self.key = 'func_unit', self.type, self.tech_node, self.clockrate
-        if self.type == "fpu":
+            self.properties["system.core0.fpu_accesses"] = action_count
             self.mcpat_patterns = ["Floating Point Units"]
         elif self.type == "int_alu":
+            self.properties["system.core0.ialu_accesses"] = action_count
             self.mcpat_patterns = ["Integer ALUs"]
         else:
+            self.properties["system.core0.mul_accesses"] = action_count
             self.mcpat_patterns = ["Complex ALUs"]
 
     def attr_supported(self):
         return self.datawidth == 32 and self.type in ["fpu", "int_alu", "mul_alu"]
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] == "instruction"
+        return self.attr_supported() and self.interface["action_name"] in ["instruction", "idle"]
 
 
 class McPatXBar(McPatComponent):

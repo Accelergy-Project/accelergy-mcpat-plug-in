@@ -134,12 +134,26 @@ req = {
 print("fpu instruction")
 test(req)
 
+req["action_name"] = "idle"
+print("fpu idle")
+test(req)
+
+req["action_name"] = "instruction"
 req["attributes"]["type"] = "int_alu"
 print("int_alu instruction")
 test(req)
 
+req["action_name"] = "idle"
+print("int_alu idle")
+test(req)
+
+req["action_name"] = "instruction"
 req["attributes"]["type"] = "mul_alu"
 print("mul_alu instruction")
+test(req)
+
+req["action_name"] = "idle"
+print("mul_alu idle")
 test(req)
 
 
