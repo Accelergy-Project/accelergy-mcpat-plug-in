@@ -571,17 +571,26 @@ class McPatLoadStoreQueue(McPatComponent):
         super().__init__(interface)
         entries = interface["attributes"]["entries"]
         queue_type = interface["attributes"]["type"]
+        action_name = interface["action_name"]
 
+        # loads and stores both contribute to LoadQ and StoreQ energies
+        # the contribution to LoadQ is 2x because of flush overhead
         if queue_type == "load":
+            if action_name == "load":
+                load_count, store_count = 1, 0
+            elif action_name == "store":
+                load_count, store_count = 0, 1
             self.properties["system.core0.load_buffer_size"] = entries
-            self.properties["system.core0.load_instructions"] = 1
-            self.properties["system.core0.store_instructions"] = 0
             self.mcpat_patterns = ["LoadQ"]
         elif queue_type == "store":
+            if action_name == "load":
+                load_count, store_count = 2, 0
+            elif action_name == "store":
+                load_count, store_count = 0, 2
             self.properties["system.core0.store_buffer_size"] = entries
-            self.properties["system.core0.store_instructions"] = 1
-            self.properties["system.core0.load_instructions"] = 0
             self.mcpat_patterns = ["StoreQ"]
+        self.properties["system.core0.store_instructions"] = load_count
+        self.properties["system.core0.load_instructions"] = store_count
 
         self.name = "load_store_queue"
         self.key = ("load_store_queue", self.tech_node, self.clockrate, self.datawidth, entries, queue_type)
@@ -590,7 +599,7 @@ class McPatLoadStoreQueue(McPatComponent):
         return self.interface["attributes"]["type"] in ["load", "store"]
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] == "access"
+        return self.attr_supported() and self.interface["action_name"] in ["load", "store"]
 
 
 class McPatFetchBuffer(McPatComponent):
@@ -613,6 +622,63 @@ class McPatFetchBuffer(McPatComponent):
         return self.interface["action_name"] == "access"
 
 
+class McPatDecoder(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        width = interface["attributes"]["width"]
+
+        self.properties["system.core0.decode_width"] = width
+        self.properties["system.core0.total_instructions"] = 1
+        self.mcpat_patterns = ["Instruction Decoder"]
+
+        self.name = "decoder"
+        self.key = ("decoder", self.tech_node, self.clockrate, self.datawidth, width)
+
+    def attr_supported(self):
+        return True
+
+    def action_supported(self):
+        return self.interface["action_name"] == "access"
+
+
+class McPatInstQueue(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        entries = interface["attributes"]["entries"]
+        action_name = interface["action_name"]
+        if action_name == "read":
+            read, write, wakeup = 1, 0, 0
+        elif action_name == "write":
+            read, write, wakeup = 0, 1, 0
+        elif action_name == "wakeup":
+            read, write, wakeup = 0, 0, 1
+
+        queue_type = interface["attributes"]["type"]
+        if queue_type == "int":
+            self.properties["system.core0.instruction_window_size"] = entries
+            self.properties["system.core0.inst_window_reads"] = read
+            self.properties["system.core0.inst_window_writes"] = write
+            self.properties["system.core0.inst_window_wakeup_accesses"] = wakeup
+            self.mcpat_patterns = ["   Instruction Window"]
+        elif queue_type == "fp":
+            self.properties["system.core0.fp_instruction_window_size"] = entries
+            self.properties["system.core0.fp_inst_window_reads"] = read
+            self.properties["system.core0.fp_inst_window_writes"] = write
+            self.properties["system.core0.fp_inst_window_wakeup_accesses"] = wakeup
+            self.mcpat_patterns = ["FP Instruction Window"]
+
+        self.name = "inst_queue"
+        self.key = ("inst_queue", queue_type, action_name, self.tech_node, self.clockrate, self.datawidth, entries)
+
+    def attr_supported(self):
+        return self.interface["attributes"]["type"] in ["int", "fp"]
+
+    def action_supported(self):
+        return self.attr_supported() and self.interface["action_name"] in ["read", "write", "wakeup"]
+
+
 components = {
     "func_unit": McPatFuncUnit,
     "xbar": McPatXBar,
@@ -624,5 +690,7 @@ components = {
     "renaming_unit": McPatRenamingUnit,
     "reorder_buffer": McPatReorderBuffer,
     "load_store_queue": McPatLoadStoreQueue,
-    "fetch_buffer": McPatFetchBuffer
+    "fetch_buffer": McPatFetchBuffer,
+    "decoder": McPatDecoder,
+    "inst_queue": McPatInstQueue,
 }

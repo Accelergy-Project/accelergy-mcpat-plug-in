@@ -208,15 +208,27 @@ action energy     11.942142142142142 pJ
 area supported    80
 area              0.467472 mm^2
 
-load_store_queue load access
+load_store_queue load load
 action supported  80
 action energy     11.743443443443443 pJ
 area supported    80
 area              0.0268025 mm^2
 
-load_store_queue store access
+load_store_queue load store
 action supported  80
-action energy     23.486886886886886 pJ
+action energy     11.743443443443443 pJ
+area supported    80
+area              0.0268025 mm^2
+
+load_store_queue store load
+action supported  80
+action energy     46.97377377377377 pJ
+area supported    80
+area              0.0268025 mm^2
+
+load_store_queue store store
+action supported  80
+action energy     46.97377377377377 pJ
 area supported    80
 area              0.0268025 mm^2
 
@@ -225,4 +237,46 @@ action supported  80
 action energy     20.816016016016015 pJ
 area supported    80
 area              0.0257922 mm^2
+
+decoder access
+action supported  80
+action energy     20.74054054054054 pJ
+area supported    80
+area              0.0237295 mm^2
+
+inst_queue int read
+action supported  80
+action energy     11.144844844844846 pJ
+area supported    80
+area              0.1841 mm^2
+
+inst_queue int write
+action supported  80
+action energy     3.048968968968969 pJ
+area supported    80
+area              0.1841 mm^2
+
+inst_queue int wakeup
+action supported  80
+action energy     5.264364364364364 pJ
+area supported    80
+area              0.1841 mm^2
+
+inst_queue fp read
+action supported  80
+action energy     1.952132132132132 pJ
+area supported    80
+area              0.0202735 mm^2
+
+inst_queue fp write
+action supported  80
+action energy     5.846676676676677 pJ
+area supported    80
+area              0.0202735 mm^2
+
+inst_queue fp wakeup
+action supported  80
+action energy     3.958448448448448 pJ
+area supported    80
+area              0.0202735 mm^2
 

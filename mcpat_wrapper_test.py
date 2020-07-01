@@ -339,14 +339,23 @@ req = {
         "entries": 32,
         "type": "load"
     },
-    "action_name":"access",
+    "action_name":"load",
     "arguments":"None"
 }
-print("load_store_queue load access")
+print("load_store_queue load load")
+test(req)
+
+req["action_name"] = "store"
+print("load_store_queue load store")
 test(req)
 
 req["attributes"]["type"] = "store"
-print("load_store_queue store access")
+req["action_name"] = "load"
+print("load_store_queue store load")
+test(req)
+
+req["action_name"] = "store"
+print("load_store_queue store store")
 test(req)
 
 
@@ -363,4 +372,58 @@ req = {
     "arguments":"None"
 }
 print("fetch_buffer access")
+test(req)
+
+
+# decoder
+req = {
+    "class_name": "decoder",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":999,
+        "datawidth":32,
+        "width": 8,
+    },
+    "action_name":"access",
+    "arguments":"None"
+}
+print("decoder access")
+test(req)
+
+
+# inst_queue
+req = {
+    "class_name": "inst_queue",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":999,
+        "datawidth":32,
+        "type": "int",
+        "entries": 64
+    },
+    "action_name":"read",
+    "arguments":"None"
+}
+print("inst_queue int read")
+test(req)
+
+req["action_name"] = "write"
+print("inst_queue int write")
+test(req)
+
+req["action_name"] = "wakeup"
+print("inst_queue int wakeup")
+test(req)
+
+req["attributes"]["type"] = "fp"
+req["action_name"] = "read"
+print("inst_queue fp read")
+test(req)
+
+req["action_name"] = "write"
+print("inst_queue fp write")
+test(req)
+
+req["action_name"] = "wakeup"
+print("inst_queue fp wakeup")
 test(req)
