@@ -246,18 +246,21 @@ class McPatComponent:
         self.properties["system.total_cycles"] = 1
         self.properties["system.busy_cycles"] = 1
 
+        datawidth = interface["attributes"]["datawidth"]
+        self.properties["system.machine_bits"] = datawidth
+        self.datawidth = datawidth
+
 
 class McPatFuncUnit(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        self.datawidth = interface["attributes"]["datawidth"]
         self.type = interface["attributes"]["type"]
         action_name = interface["action_name"]
         action_count = 1 if action_name == "instruction" else 0
 
         self.name = "func_unit"
-        self.key = ("func_unit", self.type, action_name, self.tech_node, self.clockrate)
+        self.key = ("func_unit", self.type, action_name, self.tech_node, self.clockrate, self.datawidth)
         if self.type == "fpu":
             self.properties["system.core0.fpu_accesses"] = action_count
             self.mcpat_patterns = ["Floating Point Units"]
@@ -269,7 +272,7 @@ class McPatFuncUnit(McPatComponent):
             self.mcpat_patterns = ["Complex ALUs"]
 
     def attr_supported(self):
-        return self.datawidth == 32 and self.type in ["fpu", "int_alu", "mul_alu"]
+        return self.type in ["fpu", "int_alu", "mul_alu"]
 
     def action_supported(self):
         return self.attr_supported() and self.interface["action_name"] in ["instruction", "idle"]
@@ -294,7 +297,7 @@ class McPatXBar(McPatComponent):
         self.properties["system.noc0.total_accesses"] = 1
 
         self.name = "xbar"
-        self.key = ("xbar", self.tech_node, self.clockrate, horizontal_nodes,
+        self.key = ("xbar", self.tech_node, self.clockrate, self.datawidth, horizontal_nodes,
                     vertical_nodes, throughput, latency, flit_bits)
         self.mcpat_patterns = ["Total NoCs"]
 
@@ -309,7 +312,6 @@ class McPatCache(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        datawidth = interface["attributes"]["datawidth"]
         size = interface["attributes"]["size"]                            # size in bytes
         block_size = interface["attributes"]["block_size"]                # block size in bytes
         associativity = interface["attributes"]["associativity"]          # cache associativity
@@ -349,7 +351,7 @@ class McPatCache(McPatComponent):
             self.mcpat_patterns = ["\*\*\*\nL2"]
 
         config_string = "%s, %s, %s, %s, 1, %s, %s, 0" % \
-                        (size, block_size, associativity, n_banks, data_latency, datawidth)
+                        (size, block_size, associativity, n_banks, data_latency, self.datawidth)
         buffer_string = "%s, 4, 4, %s" % (mshr_size, write_buffer_size)
 
         self.properties[mcpat_config_path] = config_string
@@ -360,7 +362,7 @@ class McPatCache(McPatComponent):
 
         self.name = "cache"
         self.key = ("cache", cache_type, action_name, self.tech_node, self.clockrate,
-                    datawidth, size, block_size, associativity, data_latency, mshr_size,
+                    self.datawidth, size, block_size, associativity, data_latency, mshr_size,
                     write_buffer_size, n_banks)
 
     def attr_supported(self):
@@ -380,7 +382,6 @@ class McPatTournamentBP(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        self.datawidth = interface["attributes"]["datawidth"]
         local_entries = interface["attributes"]["local_pred_entries"]
         local_bits = interface["attributes"]["local_pred_bits"]
         global_entries = interface["attributes"]["global_pred_entries"]
@@ -408,22 +409,21 @@ class McPatTournamentBP(McPatComponent):
         self.properties["system.core0.branch_mispredictions"] = bp_miss
 
         self.name = "tournament_bp"
-        self.key = ("tournament_bp", action_name, self.tech_node, self.clockrate, local_entries, local_bits,
-                    global_entries, global_bits, choice_entries, choice_bits)
+        self.key = ("tournament_bp", action_name, self.tech_node, self.clockrate, self.datawidth, local_entries,
+                    local_bits, global_entries, global_bits, choice_entries, choice_bits)
         self.mcpat_patterns = ["Branch Predictor"]
 
     def attr_supported(self):
-        return self.datawidth == 32
+        return True
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in ["access", "miss", "idle"]
+        return self.interface["action_name"] in ["access", "miss", "idle"]
 
 
 class McPatBTB(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        self.datawidth = interface["attributes"]["datawidth"]
         entries = interface["attributes"]["entries"]
         block_width = interface["attributes"]["block_width"]
         associativity = interface["attributes"]["associativity"]
@@ -442,20 +442,20 @@ class McPatBTB(McPatComponent):
         self.mcpat_patterns = ["Branch Target Buffer"]
 
         self.name = "btb"
-        self.key = ("btb", action_name, self.tech_node, self.clockrate, entries, block_width, associativity, banks)
+        self.key = ("btb", action_name, self.tech_node, self.clockrate, self.datawidth,
+                    entries, block_width, associativity, banks)
 
     def attr_supported(self):
-        return self.datawidth == 32
+        return True
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
+        return self.interface["action_name"] in ["read", "write"]
 
 
 class McPatCpuRegfile(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        self.datawidth = interface["attributes"]["datawidth"]
         action_name = interface["action_name"]
         if action_name == "read":
             read, write = 1, 0
@@ -475,10 +475,10 @@ class McPatCpuRegfile(McPatComponent):
             self.mcpat_patterns = ["Floating Point RF"]
 
         self.name = "cpu_regfile"
-        self.key = ("cpu_regfile", action_name, regfile_type, self.tech_node, self.clockrate)
+        self.key = ("cpu_regfile", action_name, regfile_type, self.tech_node, self.clockrate, self.datawidth)
 
     def attr_supported(self):
-        return self.datawidth == 32 and self.interface["attributes"]["type"] in ["int", "fp"]
+        return self.interface["attributes"]["type"] in ["int", "fp"]
 
     def action_supported(self):
         return self.attr_supported() and self.interface["action_name"] in ["read", "write", "idle"]
@@ -501,7 +501,7 @@ class McPatTlb(McPatComponent):
         self.properties["system.core0.itlb.total_misses"] = miss
 
         self.name = "tlb"
-        self.key = ("tlb", action_name, self.tech_node, self.clockrate, entries)
+        self.key = ("tlb", action_name, self.tech_node, self.clockrate, self.datawidth, entries)
         self.mcpat_patterns = ["Itlb"]
 
     def attr_supported(self):
@@ -515,7 +515,6 @@ class McPatRenamingUnit(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        self.datawidth = interface["attributes"]["datawidth"]
         action_name = interface["action_name"]
         if action_name == "read":
             read, write = 1, 0
@@ -531,20 +530,19 @@ class McPatRenamingUnit(McPatComponent):
         self.mcpat_patterns = ["Renaming Unit"]
 
         self.name = "renaming_unit"
-        self.key = ("renaming_unit", action_name, self.tech_node, self.clockrate)
+        self.key = ("renaming_unit", action_name, self.tech_node, self.clockrate, self.datawidth)
 
     def attr_supported(self):
-        return self.datawidth == 32
+        return True
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in ["read", "write", "idle"]
+        return self.interface["action_name"] in ["read", "write", "idle"]
 
 
 class McPatReorderBuffer(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        self.datawidth = interface["attributes"]["datawidth"]
         entries = interface["attributes"]["entries"]
         action_name = interface["action_name"]
         if action_name == "read":
@@ -558,20 +556,19 @@ class McPatReorderBuffer(McPatComponent):
         self.mcpat_patterns = ["ROB"]
 
         self.name = "reorder_buffer"
-        self.key = ("reorder_buffer", action_name, self.tech_node, self.clockrate, entries)
+        self.key = ("reorder_buffer", action_name, self.tech_node, self.clockrate, self.datawidth, entries)
 
     def attr_supported(self):
-        return self.datawidth == 32
+        return True
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
+        return self.interface["action_name"] in ["read", "write"]
 
 
 class McPatLoadStoreQueue(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        self.datawidth = interface["attributes"]["datawidth"]
         entries = interface["attributes"]["entries"]
         queue_type = interface["attributes"]["type"]
 
@@ -587,10 +584,10 @@ class McPatLoadStoreQueue(McPatComponent):
             self.mcpat_patterns = ["StoreQ"]
 
         self.name = "load_store_queue"
-        self.key = ("load_store_queue", self.tech_node, self.clockrate, entries, queue_type)
+        self.key = ("load_store_queue", self.tech_node, self.clockrate, self.datawidth, entries, queue_type)
 
     def attr_supported(self):
-        return self.datawidth == 32 and self.interface["attributes"]["type"] in ["load", "store"]
+        return self.interface["attributes"]["type"] in ["load", "store"]
 
     def action_supported(self):
         return self.attr_supported() and self.interface["action_name"] == "access"
@@ -600,7 +597,6 @@ class McPatFetchBuffer(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
-        self.datawidth = interface["attributes"]["datawidth"]
         entries = interface["attributes"]["entries"]
 
         self.properties["system.core0.instruction_buffer_size"] = entries
@@ -608,13 +604,13 @@ class McPatFetchBuffer(McPatComponent):
         self.mcpat_patterns = ["Instruction Buffer"]
 
         self.name = "fetch_buffer"
-        self.key = ("fetch_buffer", self.tech_node, self.clockrate, entries)
+        self.key = ("fetch_buffer", self.tech_node, self.clockrate, self.datawidth, entries)
 
     def attr_supported(self):
-        return self.datawidth == 32
+        return True
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] == "access"
+        return self.interface["action_name"] == "access"
 
 
 components = {
