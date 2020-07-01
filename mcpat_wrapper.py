@@ -526,7 +526,9 @@ class McPatRenamingUnit(McPatComponent):
 
         self.properties["system.core0.rename_reads"] = read
         self.properties["system.core0.rename_writes"] = write
-        self.mcpat_patterns = ["Int Front End RAT"]
+        self.properties["system.core0.fp_rename_reads"] = 0
+        self.properties["system.core0.fp_rename_writes"] = 0
+        self.mcpat_patterns = ["Renaming Unit"]
 
         self.name = "renaming_unit"
         self.key = ("renaming_unit", action_name, self.tech_node, self.clockrate)
@@ -594,6 +596,27 @@ class McPatLoadStoreQueue(McPatComponent):
         return self.attr_supported() and self.interface["action_name"] == "access"
 
 
+class McPatFetchBuffer(McPatComponent):
+
+    def __init__(self, interface):
+        super().__init__(interface)
+        self.datawidth = interface["attributes"]["datawidth"]
+        entries = interface["attributes"]["entries"]
+
+        self.properties["system.core0.instruction_buffer_size"] = entries
+        self.properties["system.core0.total_instructions"] = 1
+        self.mcpat_patterns = ["Instruction Buffer"]
+
+        self.name = "fetch_buffer"
+        self.key = ("fetch_buffer", self.tech_node, self.clockrate, entries)
+
+    def attr_supported(self):
+        return self.datawidth == 32
+
+    def action_supported(self):
+        return self.attr_supported() and self.interface["action_name"] == "access"
+
+
 components = {
     "func_unit": McPatFuncUnit,
     "xbar": McPatXBar,
@@ -604,5 +627,6 @@ components = {
     "tlb": McPatTlb,
     "renaming_unit": McPatRenamingUnit,
     "reorder_buffer": McPatReorderBuffer,
-    "load_store_queue": McPatLoadStoreQueue
+    "load_store_queue": McPatLoadStoreQueue,
+    "fetch_buffer": McPatFetchBuffer
 }

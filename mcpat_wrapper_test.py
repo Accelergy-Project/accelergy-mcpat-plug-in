@@ -348,3 +348,19 @@ test(req)
 req["attributes"]["type"] = "store"
 print("load_store_queue store access")
 test(req)
+
+
+# fetch_buffer
+req = {
+    "class_name": "fetch_buffer",
+    "attributes":{
+        "technology":"45nm",
+        "clockrate":999,
+        "datawidth":32,
+        "entries": 64,
+    },
+    "action_name":"access",
+    "arguments":"None"
+}
+print("fetch_buffer access")
+test(req)

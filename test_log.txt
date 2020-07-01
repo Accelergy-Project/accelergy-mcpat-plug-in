@@ -180,21 +180,21 @@ area              0.0202735 mm^2
 
 renaming_unit read
 action supported  80
-action energy     1.717017017017017 pJ
+action energy     20.5008008008008 pJ
 area supported    80
-area              0.0121582 mm^2
+area              0.0606469 mm^2
 
 renaming_unit write
 action supported  80
-action energy     0.7163723723723724 pJ
+action energy     20.221121121121122 pJ
 area supported    80
-area              0.0121582 mm^2
+area              0.0606469 mm^2
 
 renaming_unit idle
 action supported  80
-action energy     0.25556156156156157 pJ
+action energy     18.766666666666666 pJ
 area supported    80
-area              0.0121582 mm^2
+area              0.0606469 mm^2
 
 reorder_buffer read
 action supported  80
@@ -219,4 +219,10 @@ action supported  80
 action energy     23.486886886886886 pJ
 area supported    80
 area              0.0268025 mm^2
+
+fetch_buffer access
+action supported  80
+action energy     20.816016016016015 pJ
+area supported    80
+area              0.0257922 mm^2
 
