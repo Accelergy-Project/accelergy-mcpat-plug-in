@@ -20,10 +20,11 @@ class McPatWrapper:
     # -------------------------------------------------------------------------------------
     # Interface functions, function name, input arguments, and output have to adhere
     # -------------------------------------------------------------------------------------
-    def __init__(self, clean_output_files=True):
+    def __init__(self, clean_output_files=True, verbose=True):
         self.estimator_name = "McPat"
         self.exec_path = search_for_mcpat_exec_path()
         self.clean_output_files = clean_output_files
+        self.verbose = verbose
         self.cache = {}
         self.cache_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".cache")
         self.load_cache()  # enable data caching across invocations
@@ -69,11 +70,21 @@ class McPatWrapper:
         """
         component = components[interface['class_name']](interface)
         key = component.key
+
+        identifier = interface["class_name"]
+        if "type" in interface["attributes"]:
+            identifier += " " + interface["attributes"]["type"]
+        identifier += " " + interface["action_name"]
+
         if key in self.cache:
+            if self.verbose:
+                print("Info: accelergy-mcpat-plugin [%s] cached=1 energy=%fpJ area=%fmm^2" % (identifier, self.cache[key][0], self.cache[key][1]))
             return self.cache[key][0]
         else:
             energy, area = self.query_mcpat(component)
             self.write_cache(key, energy, area)
+            if self.verbose:
+                print("Info: accelergy-mcpat-plugin [%s] cached=0 energy=%fpJ area=%fmm^2" % (identifier, energy, area))
             return energy
 
     def primitive_area_supported(self, interface):
