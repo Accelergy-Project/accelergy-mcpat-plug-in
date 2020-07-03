@@ -90,7 +90,7 @@ req = {
       "n_rdwr_ports":1,
       "n_banks":4,
       "cache_type":"l2cache",
-      "size":262144,
+      "size":2097152,
       "associativity":8,
       "data_latency":20,
       "block_size":64,
@@ -236,7 +236,8 @@ req = {
         "technology":"45nm",
         "clockrate":999,
         "datawidth":32,
-        "type":"int"
+        "type":"int",
+        "phys_size": 256
     },
     "action_name":"read",
     "arguments":"None"

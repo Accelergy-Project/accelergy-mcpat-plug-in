@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 
 MCPAT_ACCURACY = 80  # in your metric, please set the accuracy you think McPat's estimations are
 
+MUL_FACTOR = 1000000
 
 class McPatWrapper:
     """
@@ -173,7 +174,7 @@ class McPatWrapper:
                 pattern = re.compile(mcpat_pattern + r"[\w\W]*?Area = (\d*.\d*)[\w\W]*?Runtime Dynamic = (\d*.\d*)")
                 match = pattern.search(output_string)
                 if match:
-                    energy += float(match.group(2)) * 10 ** 12 / (
+                    energy += float(match.group(2)) * 10 ** 12 / MUL_FACTOR / (
                               int(component.clockrate) * 10 ** 6)  # W to pJ conversion
                     area += float(match.group(1))
                 else:
@@ -253,13 +254,15 @@ class McPatComponent:
         self.properties["system.target_core_clockrate"] = clockrate
         self.properties["system.core0.clock_rate"] = clockrate
         self.clockrate = clockrate
-
-        self.properties["system.total_cycles"] = 1
-        self.properties["system.busy_cycles"] = 1
+        self.set_cycles(1)
 
         datawidth = interface["attributes"]["datawidth"]
         self.properties["system.machine_bits"] = datawidth
         self.datawidth = datawidth
+
+    def set_cycles(self, cycles):
+        self.properties["system.total_cycles"] = cycles
+        self.properties["system.busy_cycles"] = cycles
 
 
 class McPatFuncUnit(McPatComponent):
@@ -268,7 +271,11 @@ class McPatFuncUnit(McPatComponent):
         super().__init__(interface)
         self.type = interface["attributes"]["type"]
         action_name = interface["action_name"]
-        action_count = 1 if action_name == "instruction" else 0
+        if action_name == "instruction":
+            action_count = MUL_FACTOR
+        elif action_name == "idle":
+            action_count = 0
+            self.set_cycles(MUL_FACTOR)
 
         self.name = "func_unit"
         self.key = ("func_unit", self.type, action_name, self.tech_node, self.clockrate, self.datawidth)
@@ -305,7 +312,7 @@ class McPatXBar(McPatComponent):
         self.properties["system.noc0.link_throughput"] = throughput
         self.properties["system.noc0.link_latency"] = latency
         self.properties["system.noc0.flit_bits"] = flit_bits
-        self.properties["system.noc0.total_accesses"] = 1
+        self.properties["system.noc0.total_accesses"] = MUL_FACTOR
 
         self.name = "xbar"
         self.key = ("xbar", self.tech_node, self.clockrate, self.datawidth, horizontal_nodes,
@@ -334,13 +341,13 @@ class McPatCache(McPatComponent):
         action_name = interface["action_name"]
         read_access, read_misses, write_access, write_miss = 0, 0, 0, 0
         if action_name == "read_access":
-            read_access = 1
+            read_access = MUL_FACTOR
         elif action_name == "read_miss":
-            read_misses = 1
+            read_misses = MUL_FACTOR
         elif action_name == "write_access":
-            write_access = 1
+            write_access = MUL_FACTOR
         elif action_name == "write_miss":
-            write_miss = 1
+            write_miss = MUL_FACTOR
 
         cache_type = interface["attributes"]["cache_type"]
         if cache_type == "icache":
@@ -410,11 +417,12 @@ class McPatTournamentBP(McPatComponent):
 
         action_name = interface["action_name"]
         if action_name == "access":
-            bp_access, bp_miss = 1, 0
+            bp_access, bp_miss = MUL_FACTOR, 0
         elif action_name == "miss":
-            bp_access, bp_miss = 0, 1
+            bp_access, bp_miss = 0, MUL_FACTOR
         else:
             bp_access, bp_miss = 0, 0
+            self.set_cycles(MUL_FACTOR)
 
         self.properties["system.core0.branch_instructions"] = bp_access
         self.properties["system.core0.branch_mispredictions"] = bp_miss
@@ -441,9 +449,9 @@ class McPatBTB(McPatComponent):
         banks = interface["attributes"]["banks"]
         action_name = interface["action_name"]
         if action_name == "read":
-            read, write = 1, 0
+            read, write = MUL_FACTOR, 0
         elif action_name == "write":
-            read, write = 0, 1
+            read, write = 0, MUL_FACTOR
 
         config_string = "%s, %s, %s, %s, 1, 1" % (entries, block_width, associativity, banks)
 
@@ -467,26 +475,30 @@ class McPatCpuRegfile(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
+        phys_size = interface["attributes"]["phys_size"]
         action_name = interface["action_name"]
         if action_name == "read":
-            read, write = 1, 0
+            read, write = MUL_FACTOR, 0
         elif action_name == "write":
-            read, write = 0, 1
+            read, write = 0, MUL_FACTOR
         else:
             read, write = 0, 0
+            self.set_cycles(MUL_FACTOR)
 
         regfile_type = interface["attributes"]["type"]
         if regfile_type == "int":
+            self.properties["system.core0.phy_Regs_IRF_size"] = phys_size
             self.properties["system.core0.int_regfile_reads"] = read
             self.properties["system.core0.int_regfile_writes"] = write
             self.mcpat_patterns = ["Integer RF"]
         elif regfile_type == "fp":
+            self.properties["system.core0.phy_Regs_FRF_size"] = phys_size
             self.properties["system.core0.float_regfile_reads"] = read
             self.properties["system.core0.float_regfile_writes"] = write
             self.mcpat_patterns = ["Floating Point RF"]
 
         self.name = "cpu_regfile"
-        self.key = ("cpu_regfile", action_name, regfile_type, self.tech_node, self.clockrate, self.datawidth)
+        self.key = ("cpu_regfile", action_name, regfile_type, self.tech_node, self.clockrate, self.datawidth, phys_size)
 
     def attr_supported(self):
         return self.interface["attributes"]["type"] in ["int", "fp"]
@@ -503,9 +515,9 @@ class McPatTlb(McPatComponent):
         action_name = interface["action_name"]
         access, miss = 0, 0
         if action_name == "access":
-            access = 1
+            access = MUL_FACTOR
         elif action_name == "miss":
-            miss = 1
+            miss = MUL_FACTOR
 
         self.properties["system.core0.itlb.number_entries"] = entries
         self.properties["system.core0.itlb.total_accesses"] = access
@@ -528,11 +540,12 @@ class McPatRenamingUnit(McPatComponent):
         super().__init__(interface)
         action_name = interface["action_name"]
         if action_name == "read":
-            read, write = 1, 0
+            read, write = MUL_FACTOR, 0
         elif action_name == "write":
-            read, write = 0, 1
+            read, write = 0, MUL_FACTOR
         else:
             read, write = 0, 0
+            self.set_cycles(MUL_FACTOR)
 
         self.properties["system.core0.rename_reads"] = read
         self.properties["system.core0.rename_writes"] = write
@@ -557,9 +570,9 @@ class McPatReorderBuffer(McPatComponent):
         entries = interface["attributes"]["entries"]
         action_name = interface["action_name"]
         if action_name == "read":
-            read, write = 1, 0
+            read, write = MUL_FACTOR, 0
         elif action_name == "write":
-            read, write = 0, 1
+            read, write = 0, MUL_FACTOR
 
         self.properties["system.core0.ROB_size"] = entries
         self.properties["system.core0.ROB_reads"] = read
@@ -588,16 +601,16 @@ class McPatLoadStoreQueue(McPatComponent):
         # the contribution to LoadQ is 2x because of flush overhead
         if queue_type == "load":
             if action_name == "load":
-                load_count, store_count = 1, 0
+                load_count, store_count = MUL_FACTOR, 0
             elif action_name == "store":
-                load_count, store_count = 0, 1
+                load_count, store_count = 0, MUL_FACTOR
             self.properties["system.core0.load_buffer_size"] = entries
             self.mcpat_patterns = ["LoadQ"]
         elif queue_type == "store":
             if action_name == "load":
-                load_count, store_count = 2, 0
+                load_count, store_count = 2 * MUL_FACTOR, 0
             elif action_name == "store":
-                load_count, store_count = 0, 2
+                load_count, store_count = 0, 2 * MUL_FACTOR
             self.properties["system.core0.store_buffer_size"] = entries
             self.mcpat_patterns = ["StoreQ"]
         self.properties["system.core0.store_instructions"] = load_count
@@ -620,7 +633,7 @@ class McPatFetchBuffer(McPatComponent):
         entries = interface["attributes"]["entries"]
 
         self.properties["system.core0.instruction_buffer_size"] = entries
-        self.properties["system.core0.total_instructions"] = 1
+        self.properties["system.core0.total_instructions"] = MUL_FACTOR
         self.mcpat_patterns = ["Instruction Buffer"]
 
         self.name = "fetch_buffer"
@@ -640,7 +653,7 @@ class McPatDecoder(McPatComponent):
         width = interface["attributes"]["width"]
 
         self.properties["system.core0.decode_width"] = width
-        self.properties["system.core0.total_instructions"] = 1
+        self.properties["system.core0.total_instructions"] = MUL_FACTOR
         self.mcpat_patterns = ["Instruction Decoder"]
 
         self.name = "decoder"
@@ -660,11 +673,11 @@ class McPatInstQueue(McPatComponent):
         entries = interface["attributes"]["entries"]
         action_name = interface["action_name"]
         if action_name == "read":
-            read, write, wakeup = 1, 0, 0
+            read, write, wakeup = MUL_FACTOR, 0, 0
         elif action_name == "write":
-            read, write, wakeup = 0, 1, 0
+            read, write, wakeup = 0, MUL_FACTOR, 0
         elif action_name == "wakeup":
-            read, write, wakeup = 0, 0, 1
+            read, write, wakeup = 0, 0, MUL_FACTOR
 
         queue_type = interface["attributes"]["type"]
         if queue_type == "int":
