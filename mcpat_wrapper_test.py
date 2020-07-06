@@ -11,10 +11,18 @@ def test(interface):
     print("area             ", wrapper.estimate_area(interface), "mm^2\n")
 
 
+glob_attrs = {
+    "technology": "45nm",
+    "datawidth": 32,
+    "clockrate": 999,
+    "device_type": "lop"
+}
+
 # cache icache
 req = {
    "class_name":"cache",
    "attributes":{
+      **glob_attrs,
       "n_rd_ports":1,
       "n_wr_ports":1,
       "n_rdwr_ports":1,
@@ -26,10 +34,7 @@ req = {
       "block_size":64,
       "mshr_size":4,
       "tag_size":64,
-      "write_buffer_size":8,
-      "technology":"45nm",
-      "datawidth":32,
-      "clockrate":999
+      "write_buffer_size":8
    },
    "action_name":"read_access",
    "arguments":"None"
@@ -46,6 +51,7 @@ test(req)
 req = {
    "class_name":"cache",
    "attributes":{
+      **glob_attrs,
       "n_rd_ports":1,
       "n_wr_ports":1,
       "n_rdwr_ports":1,
@@ -57,10 +63,7 @@ req = {
       "block_size":64,
       "mshr_size":4,
       "tag_size":64,
-      "write_buffer_size":8,
-      "technology":"45nm",
-      "datawidth":32,
-      "clockrate":999
+      "write_buffer_size":8
    },
    "action_name":"read_access",
    "arguments":"None"
@@ -85,6 +88,7 @@ test(req)
 req = {
     "class_name":"cache",
    "attributes":{
+       **glob_attrs,
       "n_rd_ports":1,
       "n_wr_ports":1,
       "n_rdwr_ports":1,
@@ -96,10 +100,7 @@ req = {
       "block_size":64,
       "mshr_size":20,
       "tag_size":64,
-      "write_buffer_size":8,
-      "technology":"45nm",
-      "datawidth":32,
-      "clockrate":999
+      "write_buffer_size":8
    },
    "action_name":"read_access",
    "arguments":"None"
@@ -124,9 +125,7 @@ test(req)
 req = {
     "class_name": "func_unit",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
+        **glob_attrs,
         "type":"fpu"
     },
     "action_name":"instruction",
@@ -162,9 +161,7 @@ test(req)
 req = {
     "class_name": "xbar",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
+        **glob_attrs,
         "horizontal_nodes":1,
         "vertical_nodes": 1,
         "link_throughput": 1,
@@ -181,9 +178,7 @@ test(req)
 req = {
     "class_name": "tournament_bp",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
+        **glob_attrs,
         "local_pred_entries": 2048,
         "local_pred_bits": 2,
         "global_pred_entries": 8192,
@@ -206,13 +201,11 @@ test(req)
 req = {
     "class_name": "btb",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
+        **glob_attrs,
         "entries": 4096,
         "block_width": 4,
         "associativity": 2,
-        "banks": 2,
+        "banks": 2
     },
     "action_name":"read",
     "arguments":"None"
@@ -229,9 +222,7 @@ test(req)
 req = {
     "class_name": "cpu_regfile",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
+        **glob_attrs,
         "type":"int",
         "phys_size": 256
     },
@@ -259,9 +250,7 @@ test(req)
 req = {
     "class_name": "tlb",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
+        **glob_attrs,
         "entries":64
     },
     "action_name":"access",
@@ -279,9 +268,7 @@ test(req)
 req = {
     "class_name": "renaming_unit",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
+        **glob_attrs,
         "decode_width": 8
     },
     "action_name":"read",
@@ -303,10 +290,8 @@ test(req)
 req = {
     "class_name": "reorder_buffer",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
-        "entries": 192,
+        **glob_attrs,
+        "entries": 192
     },
     "action_name":"read",
     "arguments":"None"
@@ -323,9 +308,7 @@ test(req)
 req = {
     "class_name": "load_store_queue",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
+        **glob_attrs,
         "entries": 32,
         "type": "load"
     },
@@ -353,10 +336,8 @@ test(req)
 req = {
     "class_name": "fetch_buffer",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
-        "entries": 64,
+        **glob_attrs,
+        "entries": 64
     },
     "action_name":"access",
     "arguments":"None"
@@ -369,10 +350,8 @@ test(req)
 req = {
     "class_name": "decoder",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
-        "width": 8,
+        **glob_attrs,
+        "width": 8
     },
     "action_name":"access",
     "arguments":"None"
@@ -385,9 +364,7 @@ test(req)
 req = {
     "class_name": "inst_queue",
     "attributes":{
-        "technology":"45nm",
-        "clockrate":999,
-        "datawidth":32,
+        **glob_attrs,
         "type": "int",
         "entries": 64
     },

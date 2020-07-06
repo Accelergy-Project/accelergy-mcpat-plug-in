@@ -48,7 +48,7 @@ area              17.906 mm^2
 
 cache l2cache write_access
 action supported  80
-action energy     0.0010218118118118119 pJ
+action energy     1021.8118118118118 pJ
 area supported    80
 area              17.906 mm^2
 

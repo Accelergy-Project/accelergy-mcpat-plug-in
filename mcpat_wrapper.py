@@ -260,6 +260,18 @@ class McPatComponent:
         self.properties["system.machine_bits"] = datawidth
         self.datawidth = datawidth
 
+        device_type = interface["attributes"]["device_type"]
+        if device_type == "hp":
+            device_type_code = 0
+        if device_type == "lstp":
+            device_type_code = 1
+        if device_type == "lop":
+            device_type_code = 2
+        self.properties["system.device_type"] = device_type_code
+        self.device_type = device_type
+
+        self.global_attrs = (tech_node, clockrate, datawidth, device_type)
+
     def set_cycles(self, cycles):
         self.cycles = cycles
         self.properties["system.total_cycles"] = cycles
@@ -279,7 +291,7 @@ class McPatFuncUnit(McPatComponent):
             self.set_cycles(MUL_FACTOR)
 
         self.name = "func_unit"
-        self.key = ("func_unit", self.type, action_name, self.tech_node, self.clockrate, self.datawidth)
+        self.key = ("func_unit", self.type, action_name, *self.global_attrs)
         if self.type == "fpu":
             self.properties["system.core0.fpu_accesses"] = action_count
             self.mcpat_patterns = ["Floating Point Units"]
@@ -316,7 +328,7 @@ class McPatXBar(McPatComponent):
         self.properties["system.noc0.total_accesses"] = MUL_FACTOR
 
         self.name = "xbar"
-        self.key = ("xbar", self.tech_node, self.clockrate, self.datawidth, horizontal_nodes,
+        self.key = ("xbar", *self.global_attrs, horizontal_nodes,
                     vertical_nodes, throughput, latency, flit_bits)
         self.mcpat_patterns = ["Total NoCs"]
 
@@ -380,9 +392,8 @@ class McPatCache(McPatComponent):
         self.properties["%s.conflicts" % mcpat_path] = 0
 
         self.name = "cache"
-        self.key = ("cache", cache_type, action_name, self.tech_node, self.clockrate,
-                    self.datawidth, size, block_size, associativity, data_latency, mshr_size,
-                    write_buffer_size, n_banks)
+        self.key = ("cache", cache_type, action_name, *self.global_attrs, size, block_size,
+                    associativity, data_latency, mshr_size, write_buffer_size, n_banks)
 
     def attr_supported(self):
         return self.interface["attributes"]["cache_type"] in ["icache", "dcache", "l2cache"]
@@ -426,7 +437,7 @@ class McPatTournamentBP(McPatComponent):
         self.properties["system.core0.branch_mispredictions"] = bp_miss
 
         self.name = "tournament_bp"
-        self.key = ("tournament_bp", action_name, self.tech_node, self.clockrate, self.datawidth, local_entries,
+        self.key = ("tournament_bp", action_name, *self.global_attrs, local_entries,
                     local_bits, global_entries, global_bits, choice_entries, choice_bits)
         self.mcpat_patterns = ["Branch Predictor"]
 
@@ -459,8 +470,7 @@ class McPatBTB(McPatComponent):
         self.mcpat_patterns = ["Branch Target Buffer"]
 
         self.name = "btb"
-        self.key = ("btb", action_name, self.tech_node, self.clockrate, self.datawidth,
-                    entries, block_width, associativity, banks)
+        self.key = ("btb", action_name, *self.global_attrs, entries, block_width, associativity, banks)
 
     def attr_supported(self):
         return True
@@ -493,7 +503,7 @@ class McPatCpuRegfile(McPatComponent):
             self.mcpat_patterns = ["Floating Point RF"]
 
         self.name = "cpu_regfile"
-        self.key = ("cpu_regfile", action_name, regfile_type, self.tech_node, self.clockrate, self.datawidth, phys_size)
+        self.key = ("cpu_regfile", action_name, regfile_type, *self.global_attrs, phys_size)
 
     def attr_supported(self):
         return self.interface["attributes"]["type"] in ["int", "fp"]
@@ -519,7 +529,7 @@ class McPatTlb(McPatComponent):
         self.properties["system.core0.itlb.total_misses"] = miss
 
         self.name = "tlb"
-        self.key = ("tlb", action_name, self.tech_node, self.clockrate, self.datawidth, entries)
+        self.key = ("tlb", action_name, *self.global_attrs, entries)
         self.mcpat_patterns = ["Itlb"]
 
     def attr_supported(self):
@@ -551,7 +561,7 @@ class McPatRenamingUnit(McPatComponent):
         self.mcpat_patterns = ["Renaming Unit"]
 
         self.name = "renaming_unit"
-        self.key = ("renaming_unit", action_name, self.tech_node, self.clockrate, self.datawidth)
+        self.key = ("renaming_unit", action_name, *self.global_attrs)
 
     def attr_supported(self):
         return True
@@ -577,7 +587,7 @@ class McPatReorderBuffer(McPatComponent):
         self.mcpat_patterns = ["ROB"]
 
         self.name = "reorder_buffer"
-        self.key = ("reorder_buffer", action_name, self.tech_node, self.clockrate, self.datawidth, entries)
+        self.key = ("reorder_buffer", action_name, *self.global_attrs, entries)
 
     def attr_supported(self):
         return True
@@ -614,7 +624,7 @@ class McPatLoadStoreQueue(McPatComponent):
         self.properties["system.core0.load_instructions"] = store_count
 
         self.name = "load_store_queue"
-        self.key = ("load_store_queue", self.tech_node, self.clockrate, self.datawidth, entries, queue_type)
+        self.key = ("load_store_queue", *self.global_attrs, entries, queue_type)
 
     def attr_supported(self):
         return self.interface["attributes"]["type"] in ["load", "store"]
@@ -634,7 +644,7 @@ class McPatFetchBuffer(McPatComponent):
         self.mcpat_patterns = ["Instruction Buffer"]
 
         self.name = "fetch_buffer"
-        self.key = ("fetch_buffer", self.tech_node, self.clockrate, self.datawidth, entries)
+        self.key = ("fetch_buffer", *self.global_attrs, entries)
 
     def attr_supported(self):
         return True
@@ -654,7 +664,7 @@ class McPatDecoder(McPatComponent):
         self.mcpat_patterns = ["Instruction Decoder"]
 
         self.name = "decoder"
-        self.key = ("decoder", self.tech_node, self.clockrate, self.datawidth, width)
+        self.key = ("decoder", *self.global_attrs, width)
 
     def attr_supported(self):
         return True
@@ -691,7 +701,7 @@ class McPatInstQueue(McPatComponent):
             self.mcpat_patterns = ["FP Instruction Window"]
 
         self.name = "inst_queue"
-        self.key = ("inst_queue", queue_type, action_name, self.tech_node, self.clockrate, self.datawidth, entries)
+        self.key = ("inst_queue", queue_type, action_name, *self.global_attrs, entries)
 
     def attr_supported(self):
         return self.interface["attributes"]["type"] in ["int", "fp"]
