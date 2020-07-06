@@ -171,10 +171,10 @@ class McPatWrapper:
             energy = 0
             area = 0
             for mcpat_pattern in component.mcpat_patterns:
-                pattern = re.compile(mcpat_pattern + r"[\w\W]*?Area = (\d*.\d*)[\w\W]*?Runtime Dynamic = (\d*.\d*)")
+                pattern = re.compile(mcpat_pattern + r"[\w\W]*?Area = ([^\s]*)[\w\W]*?Runtime Dynamic = ([^\s]*)")
                 match = pattern.search(output_string)
                 if match:
-                    energy += float(match.group(2)) * 10 ** 12 / MUL_FACTOR / (
+                    energy += float(match.group(2)) * 10 ** 12 * component.cycles / MUL_FACTOR / (
                               int(component.clockrate) * 10 ** 6)  # W to pJ conversion
                     area += float(match.group(1))
                 else:
@@ -261,6 +261,7 @@ class McPatComponent:
         self.datawidth = datawidth
 
     def set_cycles(self, cycles):
+        self.cycles = cycles
         self.properties["system.total_cycles"] = cycles
         self.properties["system.busy_cycles"] = cycles
 
@@ -366,7 +367,7 @@ class McPatCache(McPatComponent):
             self.properties["%s.write_accesses" % mcpat_path] = write_access
             self.properties["%s.write_misses" % mcpat_path] = write_miss
             self.properties["%s.clockrate" % mcpat_path] = self.clockrate
-            self.mcpat_patterns = ["\*\*\*\nL2"]
+            self.mcpat_patterns = ["L2\n"]
 
         config_string = "%s, %s, %s, %s, 1, %s, %s, 0" % \
                         (size, block_size, associativity, n_banks, data_latency, self.datawidth)
@@ -420,9 +421,6 @@ class McPatTournamentBP(McPatComponent):
             bp_access, bp_miss = MUL_FACTOR, 0
         elif action_name == "miss":
             bp_access, bp_miss = 0, MUL_FACTOR
-        else:
-            bp_access, bp_miss = 0, 0
-            self.set_cycles(MUL_FACTOR)
 
         self.properties["system.core0.branch_instructions"] = bp_access
         self.properties["system.core0.branch_mispredictions"] = bp_miss
@@ -436,7 +434,7 @@ class McPatTournamentBP(McPatComponent):
         return True
 
     def action_supported(self):
-        return self.interface["action_name"] in ["access", "miss", "idle"]
+        return self.interface["action_name"] in ["access", "miss"]
 
 
 class McPatBTB(McPatComponent):
@@ -481,9 +479,6 @@ class McPatCpuRegfile(McPatComponent):
             read, write = MUL_FACTOR, 0
         elif action_name == "write":
             read, write = 0, MUL_FACTOR
-        else:
-            read, write = 0, 0
-            self.set_cycles(MUL_FACTOR)
 
         regfile_type = interface["attributes"]["type"]
         if regfile_type == "int":
@@ -504,7 +499,7 @@ class McPatCpuRegfile(McPatComponent):
         return self.interface["attributes"]["type"] in ["int", "fp"]
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in ["read", "write", "idle"]
+        return self.attr_supported() and self.interface["action_name"] in ["read", "write"]
 
 
 class McPatTlb(McPatComponent):
@@ -538,6 +533,7 @@ class McPatRenamingUnit(McPatComponent):
 
     def __init__(self, interface):
         super().__init__(interface)
+        decode_width = interface["attributes"]["decode_width"]
         action_name = interface["action_name"]
         if action_name == "read":
             read, write = MUL_FACTOR, 0
@@ -547,6 +543,7 @@ class McPatRenamingUnit(McPatComponent):
             read, write = 0, 0
             self.set_cycles(MUL_FACTOR)
 
+        self.properties["system.core0.decode_width"] = decode_width
         self.properties["system.core0.rename_reads"] = read
         self.properties["system.core0.rename_writes"] = write
         self.properties["system.core0.fp_rename_reads"] = 0

@@ -9,7 +9,7 @@
 		<param name="number_of_L1Directories" value="2"/>
 		<param name="number_of_L2Directories" value="0"/>
 		<param name="number_of_L2s" value="0"/> <!-- This number means how many L2 clusters in each cluster there can be multiple banks/ports -->
-		<param name="Private_L2" value="0"/><!--1 Private, 0 shared/coherent -->
+		<param name="Private_L2" value="1"/><!--1 Private, 0 shared/coherent -->
 		<param name="number_of_L3s" value="0"/> <!-- This number means how many L3 clusters -->
 		<param name="number_of_NoCs" value="1"/>
 		<param name="homogeneous_cores" value="1"/><!--1 means homo -->
@@ -27,7 +27,6 @@
 		<param name="device_type" value="2"/><!--0: HP(High Performance Type); 1: LSTP(Low standby power) 2: LOP (Low Operating Power)  -->
 		<param name="longer_channel_device" value="1"/><!-- 0 no use; 1 use when possible -->
 		<param name="Embedded" value="1"/><!-- Embedded processor like ARM or general purpose processors?  -->
-		<param name="opt_clockrate" value="1"/>
 		<param name="machine_bits" value="32"/>
 		<param name="virtual_address_width" value="32"/>
 		<param name="physical_address_width" value="32"/>
