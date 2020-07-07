@@ -484,6 +484,7 @@ class McPatCpuRegfile(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         phys_size = interface["attributes"]["phys_size"]
+        issue_width = interface["attributes"]["issue_width"]
         action_name = interface["action_name"]
         if action_name == "read":
             read, write = MUL_FACTOR, 0
@@ -493,17 +494,19 @@ class McPatCpuRegfile(McPatComponent):
         regfile_type = interface["attributes"]["type"]
         if regfile_type == "int":
             self.properties["system.core0.phy_Regs_IRF_size"] = phys_size
+            self.properties["system.core0.peak_issue_width"] = issue_width
             self.properties["system.core0.int_regfile_reads"] = read
             self.properties["system.core0.int_regfile_writes"] = write
             self.mcpat_patterns = ["Integer RF"]
         elif regfile_type == "fp":
             self.properties["system.core0.phy_Regs_FRF_size"] = phys_size
+            self.properties["system.core0.issue_width"] = issue_width
             self.properties["system.core0.float_regfile_reads"] = read
             self.properties["system.core0.float_regfile_writes"] = write
             self.mcpat_patterns = ["Floating Point RF"]
 
         self.name = "cpu_regfile"
-        self.key = ("cpu_regfile", action_name, regfile_type, *self.global_attrs, phys_size)
+        self.key = ("cpu_regfile", action_name, regfile_type, *self.global_attrs, phys_size, issue_width)
 
     def attr_supported(self):
         return self.interface["attributes"]["type"] in ["int", "fp"]
@@ -544,6 +547,9 @@ class McPatRenamingUnit(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         decode_width = interface["attributes"]["decode_width"]
+        commit_width = interface["attributes"]["commit_width"]
+        phys_irf_size = interface["attributes"]["phys_irf_size"]
+        phys_frf_size = interface["attributes"]["phys_frf_size"]
         action_name = interface["action_name"]
         if action_name == "read":
             read, write = MUL_FACTOR, 0
@@ -554,6 +560,9 @@ class McPatRenamingUnit(McPatComponent):
             self.set_cycles(MUL_FACTOR)
 
         self.properties["system.core0.decode_width"] = decode_width
+        self.properties["system.core0.commit_width"] = decode_width
+        self.properties["system.core0.phy_Regs_IRF_size"] = phys_irf_size
+        self.properties["system.core0.phy_Regs_FRF_size"] = phys_frf_size
         self.properties["system.core0.rename_reads"] = read
         self.properties["system.core0.rename_writes"] = write
         self.properties["system.core0.fp_rename_reads"] = 0
@@ -561,7 +570,7 @@ class McPatRenamingUnit(McPatComponent):
         self.mcpat_patterns = ["Renaming Unit"]
 
         self.name = "renaming_unit"
-        self.key = ("renaming_unit", action_name, *self.global_attrs)
+        self.key = ("renaming_unit", action_name, *self.global_attrs, decode_width, commit_width, phys_irf_size, phys_frf_size)
 
     def attr_supported(self):
         return True
@@ -601,30 +610,27 @@ class McPatLoadStoreQueue(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         entries = interface["attributes"]["entries"]
+        ports = interface["attributes"]["ports"]
         queue_type = interface["attributes"]["type"]
         action_name = interface["action_name"]
 
-        # loads and stores both contribute to LoadQ and StoreQ energies
-        # the contribution to LoadQ is 2x because of flush overhead
+        if action_name == "load":
+            load_count, store_count = MUL_FACTOR, 0
+        elif action_name == "store":
+            load_count, store_count = 0, MUL_FACTOR
+
         if queue_type == "load":
-            if action_name == "load":
-                load_count, store_count = MUL_FACTOR, 0
-            elif action_name == "store":
-                load_count, store_count = 0, MUL_FACTOR
             self.properties["system.core0.load_buffer_size"] = entries
             self.mcpat_patterns = ["LoadQ"]
         elif queue_type == "store":
-            if action_name == "load":
-                load_count, store_count = 2 * MUL_FACTOR, 0
-            elif action_name == "store":
-                load_count, store_count = 0, 2 * MUL_FACTOR
             self.properties["system.core0.store_buffer_size"] = entries
             self.mcpat_patterns = ["StoreQ"]
+        self.properties["system.core0.memory_ports"] = ports
         self.properties["system.core0.store_instructions"] = load_count
         self.properties["system.core0.load_instructions"] = store_count
 
         self.name = "load_store_queue"
-        self.key = ("load_store_queue", *self.global_attrs, entries, queue_type)
+        self.key = ("load_store_queue", *self.global_attrs, entries, ports, queue_type)
 
     def attr_supported(self):
         return self.interface["attributes"]["type"] in ["load", "store"]

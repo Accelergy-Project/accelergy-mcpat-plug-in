@@ -224,7 +224,8 @@ req = {
     "attributes":{
         **glob_attrs,
         "type":"int",
-        "phys_size": 256
+        "phys_size": 256,
+        "issue_width": 8
     },
     "action_name":"read",
     "arguments":"None"
@@ -269,7 +270,10 @@ req = {
     "class_name": "renaming_unit",
     "attributes":{
         **glob_attrs,
-        "decode_width": 8
+        "decode_width": 8,
+        "commit_width": 8,
+        "phys_irf_size": 256,
+        "phys_frf_size": 256
     },
     "action_name":"read",
     "arguments":"None"
@@ -310,7 +314,8 @@ req = {
     "attributes":{
         **glob_attrs,
         "entries": 32,
-        "type": "load"
+        "type": "load",
+        "ports": 2
     },
     "action_name":"load",
     "arguments":"None"

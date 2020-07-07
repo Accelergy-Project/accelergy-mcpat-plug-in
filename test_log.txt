@@ -126,27 +126,27 @@ area              0.324044 mm^2
 
 cpu_regfile int read
 action supported  80
-action energy     6.692452452452453 pJ
+action energy     7.462292292292292 pJ
 area supported    80
-area              0.788643 mm^2
+area              1.00606 mm^2
 
 cpu_regfile int write
 action supported  80
-action energy     9.318888888888889 pJ
+action energy     10.40960960960961 pJ
 area supported    80
-area              0.788643 mm^2
+area              1.00606 mm^2
 
 cpu_regfile fp read
 action supported  80
-action energy     4.378428428428428 pJ
+action energy     7.462292292292292 pJ
 area supported    80
-area              0.294933 mm^2
+area              1.00606 mm^2
 
 cpu_regfile fp write
 action supported  80
-action energy     6.0425025025025025 pJ
+action energy     10.40960960960961 pJ
 area supported    80
-area              0.294933 mm^2
+area              1.00606 mm^2
 
 tlb access
 action supported  80
@@ -162,21 +162,21 @@ area              0.0202735 mm^2
 
 renaming_unit read
 action supported  80
-action energy     35.28968968968969 pJ
+action energy     37.96246246246246 pJ
 area supported    80
-area              0.181213 mm^2
+area              0.392026 mm^2
 
 renaming_unit write
 action supported  80
-action energy     2.677067067067067 pJ
+action energy     4.4687287287287285 pJ
 area supported    80
-area              0.181213 mm^2
+area              0.392026 mm^2
 
 renaming_unit idle
 action supported  80
-action energy     20.88908908908909 pJ
+action energy     22.4019019019019 pJ
 area supported    80
-area              0.181213 mm^2
+area              0.392026 mm^2
 
 reorder_buffer read
 action supported  80
@@ -192,27 +192,27 @@ area              0.467472 mm^2
 
 load_store_queue load load
 action supported  80
-action energy     11.743443443443443 pJ
+action energy     18.234634634634634 pJ
 area supported    80
-area              0.0268025 mm^2
+area              0.0867322 mm^2
 
 load_store_queue load store
 action supported  80
-action energy     11.743443443443443 pJ
+action energy     18.234634634634634 pJ
 area supported    80
-area              0.0268025 mm^2
+area              0.0867322 mm^2
 
 load_store_queue store load
 action supported  80
-action energy     46.97377377377377 pJ
+action energy     36.46926926926927 pJ
 area supported    80
-area              0.0268025 mm^2
+area              0.0867322 mm^2
 
 load_store_queue store store
 action supported  80
-action energy     46.97377377377377 pJ
+action energy     36.46926926926927 pJ
 area supported    80
-area              0.0268025 mm^2
+area              0.0867322 mm^2
 
 fetch_buffer access
 action supported  80
