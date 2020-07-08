@@ -371,7 +371,8 @@ req = {
     "attributes":{
         **glob_attrs,
         "type": "int",
-        "entries": 64
+        "entries": 32,
+        "issue_width": 8
     },
     "action_name":"read",
     "arguments":"None"

@@ -684,6 +684,7 @@ class McPatInstQueue(McPatComponent):
     def __init__(self, interface):
         super().__init__(interface)
         entries = interface["attributes"]["entries"]
+        issue_width = interface["attributes"]["issue_width"]
         action_name = interface["action_name"]
         if action_name == "read":
             read, write, wakeup = MUL_FACTOR, 0, 0
@@ -705,9 +706,10 @@ class McPatInstQueue(McPatComponent):
             self.properties["system.core0.fp_inst_window_writes"] = write
             self.properties["system.core0.fp_inst_window_wakeup_accesses"] = wakeup
             self.mcpat_patterns = ["FP Instruction Window"]
+        self.properties["system.core0.peak_issue_width"] = issue_width
 
         self.name = "inst_queue"
-        self.key = ("inst_queue", queue_type, action_name, *self.global_attrs, entries)
+        self.key = ("inst_queue", queue_type, action_name, *self.global_attrs, entries, issue_width)
 
     def attr_supported(self):
         return self.interface["attributes"]["type"] in ["int", "fp"]

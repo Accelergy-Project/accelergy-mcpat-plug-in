@@ -228,37 +228,37 @@ area              0.0237295 mm^2
 
 inst_queue int read
 action supported  80
-action energy     11.144844844844846 pJ
+action energy     7.66974974974975 pJ
 area supported    80
-area              0.1841 mm^2
+area              0.186093 mm^2
 
 inst_queue int write
 action supported  80
-action energy     3.048968968968969 pJ
+action energy     2.796706706706707 pJ
 area supported    80
-area              0.1841 mm^2
+area              0.186093 mm^2
 
 inst_queue int wakeup
 action supported  80
-action energy     5.264364364364364 pJ
+action energy     3.9253753753753755 pJ
 area supported    80
-area              0.1841 mm^2
+area              0.186093 mm^2
 
 inst_queue fp read
 action supported  80
-action energy     1.952132132132132 pJ
+action energy     1.894894894894895 pJ
 area supported    80
-area              0.0202735 mm^2
+area              0.0158865 mm^2
 
 inst_queue fp write
 action supported  80
-action energy     5.846676676676677 pJ
+action energy     5.996756756756756 pJ
 area supported    80
-area              0.0202735 mm^2
+area              0.0158865 mm^2
 
 inst_queue fp wakeup
 action supported  80
-action energy     3.9584484484484483 pJ
+action energy     2.876846846846847 pJ
 area supported    80
-area              0.0202735 mm^2
+area              0.0158865 mm^2
 
