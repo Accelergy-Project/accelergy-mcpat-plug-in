@@ -36,10 +36,10 @@ req = {
       "tag_size":64,
       "write_buffer_size":8
    },
-   "action_name":"read_access",
+   "action_name":"read_hit",
    "arguments":"None"
 }
-print("cache icache read_access")
+print("cache icache read_hit")
 test(req)
 
 req["action_name"] = "read_miss"
@@ -65,18 +65,18 @@ req = {
       "tag_size":64,
       "write_buffer_size":8
    },
-   "action_name":"read_access",
+   "action_name":"read_hit",
    "arguments":"None"
 }
-print("cache dcache read_access")
+print("cache dcache read_hit")
 test(req)
 
 req["action_name"] = "read_miss"
 print("cache dcache read_miss")
 test(req)
 
-req["action_name"] = "write_access"
-print("cache dcache write_access")
+req["action_name"] = "write_hit"
+print("cache dcache write_hit")
 test(req)
 
 req["action_name"] = "write_miss"
@@ -102,18 +102,18 @@ req = {
       "tag_size":64,
       "write_buffer_size":8
    },
-   "action_name":"read_access",
+   "action_name":"read_hit",
    "arguments":"None"
 }
-print("cache l2cache read_access")
+print("cache l2cache read_hit")
 test(req)
 
 req["action_name"] = "read_miss"
 print("cache l2cache read_miss")
 test(req)
 
-req["action_name"] = "write_access"
-print("cache l2cache write_access")
+req["action_name"] = "write_hit"
+print("cache l2cache write_hit")
 test(req)
 
 req["action_name"] = "write_miss"
@@ -128,28 +128,28 @@ req = {
         **glob_attrs,
         "type":"fpu"
     },
-    "action_name":"instruction",
+    "action_name":"access",
     "arguments":"None"
 }
-print("fpu instruction")
+print("fpu access")
 test(req)
 
 req["action_name"] = "idle"
 print("fpu idle")
 test(req)
 
-req["action_name"] = "instruction"
+req["action_name"] = "access"
 req["attributes"]["type"] = "int_alu"
-print("int_alu instruction")
+print("int_alu access")
 test(req)
 
 req["action_name"] = "idle"
 print("int_alu idle")
 test(req)
 
-req["action_name"] = "instruction"
+req["action_name"] = "access"
 req["attributes"]["type"] = "mul_alu"
-print("mul_alu instruction")
+print("mul_alu access")
 test(req)
 
 req["action_name"] = "idle"
@@ -186,10 +186,10 @@ req = {
         "choice_pred_entries": 8192,
         "choice_pred_bits": 2
     },
-    "action_name":"access",
+    "action_name":"hit",
     "arguments":"None"
 }
-print("tournament_bp access")
+print("tournament_bp hit")
 test(req)
 
 req["action_name"] = "miss"
@@ -254,10 +254,10 @@ req = {
         **glob_attrs,
         "entries":64
     },
-    "action_name":"access",
+    "action_name":"hit",
     "arguments":"None"
 }
-print("tlb access")
+print("tlb hit")
 test(req)
 
 req["action_name"] = "miss"
@@ -283,10 +283,6 @@ test(req)
 
 req["action_name"] = "write"
 print("renaming_unit write")
-test(req)
-
-req["action_name"] = "idle"
-print("renaming_unit idle")
 test(req)
 
 

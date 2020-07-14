@@ -1,4 +1,4 @@
-cache icache read_access
+cache icache read_hit
 action supported  80
 action energy     84.35065065065065 pJ
 area supported    80
@@ -6,11 +6,11 @@ area              1.36736 mm^2
 
 cache icache read_miss
 action supported  80
-action energy     664.4704704704704 pJ
+action energy     748.8208208208208 pJ
 area supported    80
 area              1.36736 mm^2
 
-cache dcache read_access
+cache dcache read_hit
 action supported  80
 action energy     105.15215215215215 pJ
 area supported    80
@@ -18,11 +18,11 @@ area              1.61599 mm^2
 
 cache dcache read_miss
 action supported  80
-action energy     566.8448448448448 pJ
+action energy     671.996996996997 pJ
 area supported    80
 area              1.61599 mm^2
 
-cache dcache write_access
+cache dcache write_hit
 action supported  80
 action energy     132.24024024024024 pJ
 area supported    80
@@ -30,11 +30,11 @@ area              1.61599 mm^2
 
 cache dcache write_miss
 action supported  80
-action energy     1.4137237237237237 pJ
+action energy     133.65465465465465 pJ
 area supported    80
 area              1.61599 mm^2
 
-cache l2cache read_access
+cache l2cache read_hit
 action supported  80
 action energy     963.3873873873874 pJ
 area supported    80
@@ -42,25 +42,25 @@ area              17.906 mm^2
 
 cache l2cache read_miss
 action supported  80
-action energy     -951.1771771771772 pJ
+action energy     12.210510510510511 pJ
 area supported    80
 area              17.906 mm^2
 
-cache l2cache write_access
+cache l2cache write_hit
 action supported  80
-action energy     1021.8118118118118 pJ
+action energy     1021.8118118118119 pJ
 area supported    80
 area              17.906 mm^2
 
 cache l2cache write_miss
 action supported  80
-action energy     972.7207207207207 pJ
+action energy     1994.5345345345345 pJ
 area supported    80
 area              17.906 mm^2
 
-fpu instruction
+fpu access
 action supported  80
-action energy     142.37937937937937 pJ
+action energy     245.93893893893895 pJ
 area supported    80
 area              2.32925 mm^2
 
@@ -70,9 +70,9 @@ action energy     103.55955955955956 pJ
 area supported    80
 area              2.32925 mm^2
 
-int_alu instruction
+int_alu access
 action supported  80
-action energy     47.45985985985986 pJ
+action energy     81.97957957957958 pJ
 area supported    80
 area              0.235435 mm^2
 
@@ -82,9 +82,9 @@ action energy     34.51971971971972 pJ
 area supported    80
 area              0.235435 mm^2
 
-mul_alu instruction
+mul_alu access
 action supported  80
-action energy     94.91981981981982 pJ
+action energy     163.95895895895896 pJ
 area supported    80
 area              0.235435 mm^2
 
@@ -100,15 +100,15 @@ action energy     210.7017017017017 pJ
 area supported    80
 area              0.127358 mm^2
 
-tournament_bp access
+tournament_bp hit
 action supported  80
-action energy     15.843143143143143 pJ
+action energy     15.843143143143141 pJ
 area supported    80
 area              0.257514 mm^2
 
 tournament_bp miss
 action supported  80
-action energy     10.235335335335336 pJ
+action energy     26.078478478478477 pJ
 area supported    80
 area              0.257514 mm^2
 
@@ -148,7 +148,7 @@ action energy     10.40960960960961 pJ
 area supported    80
 area              1.00606 mm^2
 
-tlb access
+tlb hit
 action supported  80
 action energy     4.732392392392392 pJ
 area supported    80
@@ -156,25 +156,19 @@ area              0.0202735 mm^2
 
 tlb miss
 action supported  80
-action energy     2.411081081081081 pJ
+action energy     7.143473473473473 pJ
 area supported    80
 area              0.0202735 mm^2
 
 renaming_unit read
 action supported  80
-action energy     37.96246246246246 pJ
+action energy     60.36436436436436 pJ
 area supported    80
 area              0.392026 mm^2
 
 renaming_unit write
 action supported  80
-action energy     4.4687287287287285 pJ
-area supported    80
-area              0.392026 mm^2
-
-renaming_unit idle
-action supported  80
-action energy     22.4019019019019 pJ
+action energy     26.87057057057057 pJ
 area supported    80
 area              0.392026 mm^2
 

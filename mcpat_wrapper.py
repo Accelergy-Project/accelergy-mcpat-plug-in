@@ -174,7 +174,7 @@ class McPatWrapper:
                 pattern = re.compile(mcpat_pattern + r"[\w\W]*?Area = ([^\s]*)[\w\W]*?Runtime Dynamic = ([^\s]*)")
                 match = pattern.search(output_string)
                 if match:
-                    energy += float(match.group(2)) * 10 ** 12 * component.cycles / MUL_FACTOR / (
+                    energy += float(match.group(2)) * 10 ** 12 / (
                               int(component.clockrate) * 10 ** 6)  # W to pJ conversion
                     area += float(match.group(1))
                 else:
@@ -254,7 +254,8 @@ class McPatComponent:
         self.properties["system.target_core_clockrate"] = clockrate
         self.properties["system.core0.clock_rate"] = clockrate
         self.clockrate = clockrate
-        self.set_cycles(1)
+        self.properties["system.total_cycles"] = MUL_FACTOR
+        self.properties["system.busy_cycles"] = MUL_FACTOR
 
         datawidth = interface["attributes"]["datawidth"]
         self.properties["system.machine_bits"] = datawidth
@@ -272,11 +273,6 @@ class McPatComponent:
 
         self.global_attrs = (tech_node, clockrate, datawidth, device_type)
 
-    def set_cycles(self, cycles):
-        self.cycles = cycles
-        self.properties["system.total_cycles"] = cycles
-        self.properties["system.busy_cycles"] = cycles
-
 
 class McPatFuncUnit(McPatComponent):
 
@@ -284,11 +280,10 @@ class McPatFuncUnit(McPatComponent):
         super().__init__(interface)
         self.type = interface["attributes"]["type"]
         action_name = interface["action_name"]
-        if action_name == "instruction":
+        if action_name == "access":
             action_count = MUL_FACTOR
         elif action_name == "idle":
             action_count = 0
-            self.set_cycles(MUL_FACTOR)
 
         self.name = "func_unit"
         self.key = ("func_unit", self.type, action_name, *self.global_attrs)
@@ -306,7 +301,7 @@ class McPatFuncUnit(McPatComponent):
         return self.type in ["fpu", "int_alu", "mul_alu"]
 
     def action_supported(self):
-        return self.attr_supported() and self.interface["action_name"] in ["instruction", "idle"]
+        return self.attr_supported() and self.interface["action_name"] in ["access", "idle"]
 
 
 class McPatXBar(McPatComponent):
@@ -353,14 +348,14 @@ class McPatCache(McPatComponent):
 
         action_name = interface["action_name"]
         read_access, read_misses, write_access, write_miss = 0, 0, 0, 0
-        if action_name == "read_access":
+        if action_name == "read_hit":
             read_access = MUL_FACTOR
         elif action_name == "read_miss":
-            read_misses = MUL_FACTOR
-        elif action_name == "write_access":
+            read_access, read_misses = MUL_FACTOR, MUL_FACTOR
+        elif action_name == "write_hit":
             write_access = MUL_FACTOR
         elif action_name == "write_miss":
-            write_miss = MUL_FACTOR
+            write_access, write_miss = MUL_FACTOR, MUL_FACTOR
 
         cache_type = interface["attributes"]["cache_type"]
         if cache_type == "icache":
@@ -401,9 +396,9 @@ class McPatCache(McPatComponent):
     def action_supported(self):
         cache_type = self.interface["attributes"]["cache_type"]
         if cache_type == "icache":
-            return self.interface["action_name"] in ["read_access", "read_miss"]
+            return self.interface["action_name"] in ["read_hit", "read_miss"]
         elif cache_type in ["dcache", "l2cache"]:
-            return self.interface["action_name"] in ["read_access", "read_miss", "write_access", "write_miss"]
+            return self.interface["action_name"] in ["read_hit", "read_miss", "write_hit", "write_miss"]
         else:
             return False
 
@@ -428,10 +423,10 @@ class McPatTournamentBP(McPatComponent):
         self.properties[base + "chooser_predictor_entries"] = choice_entries
 
         action_name = interface["action_name"]
-        if action_name == "access":
+        if action_name == "hit":
             bp_access, bp_miss = MUL_FACTOR, 0
         elif action_name == "miss":
-            bp_access, bp_miss = 0, MUL_FACTOR
+            bp_access, bp_miss = MUL_FACTOR, MUL_FACTOR
 
         self.properties["system.core0.branch_instructions"] = bp_access
         self.properties["system.core0.branch_mispredictions"] = bp_miss
@@ -445,7 +440,7 @@ class McPatTournamentBP(McPatComponent):
         return True
 
     def action_supported(self):
-        return self.interface["action_name"] in ["access", "miss"]
+        return self.interface["action_name"] in ["hit", "miss"]
 
 
 class McPatBTB(McPatComponent):
@@ -521,11 +516,10 @@ class McPatTlb(McPatComponent):
         super().__init__(interface)
         entries = interface["attributes"]["entries"]
         action_name = interface["action_name"]
-        access, miss = 0, 0
-        if action_name == "access":
-            access = MUL_FACTOR
+        if action_name == "hit":
+            access, miss = MUL_FACTOR, 0
         elif action_name == "miss":
-            miss = MUL_FACTOR
+            access, miss = MUL_FACTOR, MUL_FACTOR
 
         self.properties["system.core0.itlb.number_entries"] = entries
         self.properties["system.core0.itlb.total_accesses"] = access
@@ -539,7 +533,7 @@ class McPatTlb(McPatComponent):
         return True
 
     def action_supported(self):
-        return self.interface["action_name"] in ["access", "miss"]
+        return self.interface["action_name"] in ["hit", "miss"]
 
 
 class McPatRenamingUnit(McPatComponent):
@@ -555,9 +549,6 @@ class McPatRenamingUnit(McPatComponent):
             read, write = MUL_FACTOR, 0
         elif action_name == "write":
             read, write = 0, MUL_FACTOR
-        else:
-            read, write = 0, 0
-            self.set_cycles(MUL_FACTOR)
 
         self.properties["system.core0.decode_width"] = decode_width
         self.properties["system.core0.commit_width"] = decode_width
@@ -576,7 +567,7 @@ class McPatRenamingUnit(McPatComponent):
         return True
 
     def action_supported(self):
-        return self.interface["action_name"] in ["read", "write", "idle"]
+        return self.interface["action_name"] in ["read", "write"]
 
 
 class McPatReorderBuffer(McPatComponent):
