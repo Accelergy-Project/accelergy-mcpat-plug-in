@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from mcpat_wrapper import *
 
 wrapper = McPatWrapper(clean_output_files=False, verbose=False)
