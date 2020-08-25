@@ -9,6 +9,8 @@ in the file `.cache` so repeated invocations are not repeated. To clear the cach
 - Install [Accelergy framework](https://github.com/nelliewu95/accelergy)
 - Download and build [McPat 1.3](https://github.com/HewlettPackard/mcpat) 
 
+The McPAT executable directory can either be located in the plugin directory or on the PATH environment variable.
+
 ## Use the plug-in
 - Clone the repo by ```git clone https://github.com/Accelergy-Project/accelergy-mcpat-plug-in.git```
 - To set the relative accuracy of your McPat plug-in

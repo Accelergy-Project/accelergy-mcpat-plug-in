@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, "..")
 from mcpat_wrapper import *
 
 wrapper = McPatWrapper(clean_output_files=False, verbose=False)
