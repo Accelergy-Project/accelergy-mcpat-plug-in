@@ -3,6 +3,7 @@ import re
 import copy
 import json
 import subprocess
+import time
 import xml.etree.ElementTree as ET
 
 # -------------------------------------------------------------------------------
@@ -11,7 +12,8 @@ import xml.etree.ElementTree as ET
 
 MCPAT_ACCURACY = 80  # in your metric, please set the accuracy you think McPat's estimations are
 
-MUL_FACTOR = 1000000
+MUL_FACTOR = 1000000  # averaging factor for McPAT
+CACHE_TIMEOUT = 10    # cache timeout in days
 
 class McPatWrapper:
     """
@@ -137,15 +139,25 @@ class McPatWrapper:
 
     def load_cache(self):
         if os.path.exists(self.cache_file):
+            entries = []
             with open(self.cache_file, "r") as file:
                 for line in file.readlines():
                     entry = json.loads(line)
+                    entry_time = entry[3]
+                    current_time = time.time()
+                    timeout = CACHE_TIMEOUT * 86400
+                    if current_time > entry_time > current_time - timeout:
+                        entries.append(entry)
+            with open(self.cache_file, "w") as file:
+                for entry in entries:
+                    json.dump(entry, file)
+                    file.write("\n")
                     self.cache[tuple(entry[0])] = (entry[1], entry[2])
 
     def write_cache(self, key, energy, area):
         self.cache[key] = (energy, area)
         with open(self.cache_file, "a") as file:
-            json.dump([key, energy, area], file)
+            json.dump([key, energy, area, time.time()], file)
             file.write("\n")
 
     def query_mcpat(self, component):

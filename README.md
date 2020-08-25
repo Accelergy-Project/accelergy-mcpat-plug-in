@@ -3,7 +3,8 @@
 An energy estimation plug-in for [Accelergy framework](https://github.com/nelliewu95/accelergy). It is a wrapper for
 the McPAT integrated power, area, and timing framework. It works by substituting in attributes to the `properties.xml`
 definition file, running McPAT, and parsing the output. Since queries to McPAT can take some time, results are cached
-in the file `.cache` so repeated invocations are not repeated. To clear the cache delete the `.cache` file.
+in the file `.cache` so repeated invocations are not repeated. To clear the cache delete the `.cache` file. Cache
+entries older than `CACHE_TIMEOUT` days are invalidated.
 
 ## Get started 
 - Install [Accelergy framework](https://github.com/nelliewu95/accelergy)
