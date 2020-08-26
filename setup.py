@@ -26,8 +26,7 @@ setup(
         ('share/accelergy/estimation_plug_ins/accelergy-mcpat-plug-in',
          ['mcpat.estimator.yaml',
           'mcpat_wrapper.py',
-          'default_fpu.xml',
-          'default_icache.xml'])
+          'properties.xml'])
     ],
     include_package_data=True,
     entry_points={},
