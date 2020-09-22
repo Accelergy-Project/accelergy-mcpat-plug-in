@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 MCPAT_ACCURACY = 80  # in your metric, please set the accuracy you think McPat's estimations are
 
 MUL_FACTOR = 1000000  # averaging factor for McPAT
-CACHE_TIMEOUT = 10    # cache timeout in days
+CACHE_TIMEOUT = 30    # cache timeout in days
 
 class McPatWrapper:
     """
