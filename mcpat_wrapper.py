@@ -267,7 +267,9 @@ class McPatComponent:
         self.properties["system.core0.clock_rate"] = clockrate
         self.clockrate = clockrate
         self.properties["system.total_cycles"] = MUL_FACTOR
+        self.properties["system.core0.total_cycles"] = MUL_FACTOR
         self.properties["system.busy_cycles"] = MUL_FACTOR
+        self.properties["system.core0.busy_cycles"] = MUL_FACTOR
 
         datawidth = interface["attributes"]["datawidth"]
         self.properties["system.machine_bits"] = datawidth

@@ -46,7 +46,7 @@
 			<param name="opt_local" value="0"/>
 			<param name="instruction_length" value="32"/>
 			<param name="opcode_width" value="7"/>
-			<param name="x86" value="0"/>
+			<param name="x86" value="1"/>
 			<param name="micro_opcode_width" value="8"/>
 			<param name="machine_type" value="0"/>
 			<!-- inorder/OoO; 1 inorder; 0 OOO-->
@@ -295,8 +295,7 @@
 			    <param name="clockrate" value="3400"/>
 				<param name="ports" value="1,1,1"/>
 				<!-- number of r, w, and rw search ports -->
-				<param name="device_type" value="0"/>
-				<!-- although there are multiple access types, 
+				<!-- although there are multiple access types,
 				Performance simulator needs to cast them into reads or writes
 				e.g. the invalidates can be considered as writes -->
 				<stat name="read_accesses" value="58824"/>
@@ -315,7 +314,6 @@
 				<param name="clockrate" value="3400"/>
 				<param name="ports" value="1,1,1"/>
 				<!-- number of r, w, and rw ports -->
-				<param name="device_type" value="0"/>
 				<stat name="read_accesses" value="200000"/>
 				<stat name="write_accesses" value="27276"/>
 				<stat name="read_misses" value="1632"/>
